@@ -4,13 +4,13 @@ using Markdown.Parser;
 
 namespace Markdown;
 
-public class Markdown(MdLexer lexer, TokenParser parser, HtmlGenerator generator)
+public class Markdown
 {
     public string ConvertToHtml(string text)
     {
-        var tokens = lexer.Tokenize(text);
-        var parseTree = parser.Parse(tokens);
-        var html = generator.Generate(parseTree);
+        var tokens = MdLexer.Tokenize(text);
+        var parseTree = TokenParser.Parse(tokens);
+        var html = HtmlGenerator.Generate(parseTree);
         
         return html;
     }
