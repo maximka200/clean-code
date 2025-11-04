@@ -3,8 +3,9 @@
 public enum TokenType
 {
     Word,
-    Letter,
+    Number,
     Space, 
     Underscore,
-    Grid
+    Grid,
+    Letter,
 }

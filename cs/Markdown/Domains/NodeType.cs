@@ -3,5 +3,7 @@
 public enum NodeType
 {
     Text,
+    Bold,
+    Italic,
     // TODO: Implement NodeType
 }

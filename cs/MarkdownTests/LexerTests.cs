@@ -15,7 +15,7 @@ public class Tests
                 new MdToken(TokenType.Grid, "#"),
                 new MdToken(TokenType.Word, "Test")
             }
-        ).SetName("WithGrid_1");
+        ).SetName("WithGridAndWord_1");
         
         yield return new TestCaseData(
             "_Test",
@@ -24,7 +24,40 @@ public class Tests
                 new MdToken(TokenType.Underscore, "_"),
                 new MdToken(TokenType.Word, "Test")
             }
-        ).SetName("WithUnderscore_1");
+        ).SetName("WithUnderscoreAndWord_1");
+        
+        yield return new TestCaseData(
+            "_123",
+            new List<MdToken>
+            {
+                new MdToken(TokenType.Underscore, "_"),
+                new MdToken(TokenType.Number, "123")
+            }
+        ).SetName("WithUnderscoreAndNumber_1");
+        
+        yield return new TestCaseData(
+            "123Test",
+            new List<MdToken>
+            {
+                new MdToken(TokenType.Number, "123"),
+                new MdToken(TokenType.Word, "Test")
+            }
+        ).SetName("WithWordAndNumber_1");
+        
+        yield return new TestCaseData(
+            "_Test_ #Text 123",
+            new List<MdToken>
+            {
+                new MdToken(TokenType.Underscore, "_"),
+                new MdToken(TokenType.Word, "Test"),
+                new MdToken(TokenType.Underscore, "_"),
+                new MdToken(TokenType.Space, " "),
+                new MdToken(TokenType.Grid, "#"),
+                new MdToken(TokenType.Word, "Text"),
+                new MdToken(TokenType.Space, " "),
+                new MdToken(TokenType.Number, "123")
+            }
+        ).SetName("WithAllTokens_1");
     }
     
     [Test]
@@ -37,9 +70,10 @@ public class Tests
     }
     
     [Test]
-    [TestCase('T', TokenType.Letter)]
+    [TestCase('T', TokenType.Word)]
     [TestCase('#', TokenType.Grid)]
     [TestCase('_', TokenType.Underscore)]
+    [TestCase('1', TokenType.Number)]
     public void GetTokenType_ActualOutputShouldBeEqualExpectedOutput(char input, TokenType expectedOutput)
     {
         var actualInput = MdLexer.GetTokenType(input);
