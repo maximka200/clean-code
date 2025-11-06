@@ -24,7 +24,7 @@ public static class MdLexer
                         tokenType is TokenType.Word ? char.IsLetter : char.IsNumber
                         );
                     tokens.Add(new MdToken(tokenType, value));
-                    i = nextIndex - 1;
+                    i = nextIndex;
                     break;
                 default:
                     tokens.Add(new MdToken(tokenType, symbol.ToString()));
@@ -37,17 +37,17 @@ public static class MdLexer
 
     private static (string word, int nextIndex) CollectFullValue(string text, int startIndex, Func<char, bool> predicate)
     {
-        var word = new StringBuilder();
-        word.Append(text[startIndex]);
+        var value = new StringBuilder();
+        value.Append(text[startIndex]);
 
         var i = startIndex + 1;
         while (i < text.Length && predicate(text[i]))
         {
-            word.Append(text[i]);
+            value.Append(text[i]);
             i++;
         }
 
-        return (word.ToString(), i);
+        return (value.ToString(), i - 1);
     }
 
     public static TokenType GetTokenType(char text) =>
@@ -56,8 +56,10 @@ public static class MdLexer
             _ when char.IsLetter(text) => TokenType.Word,
             _ when char.IsNumber(text) => TokenType.Number,
             '#' => TokenType.Grid,
+            '*' => TokenType.Asterisk,
             '_' => TokenType.Underscore,
-            ' ' => TokenType.Space,
-            _ => throw new ArgumentException($"Unknown token type: {text}")
+            ' ' or '\u00a0' or '\u200b' => TokenType.Space,
+            '\n' or '\r' => TokenType.Escape,
+            _ => throw new ArgumentOutOfRangeException($"Unknown token type: {text}")
         };
 }

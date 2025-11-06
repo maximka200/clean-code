@@ -12,57 +12,57 @@ public class Tests
             "#Test",
             new List<MdToken>
             {
-                new MdToken(TokenType.Grid, "#"),
-                new MdToken(TokenType.Word, "Test")
+                new(TokenType.Grid, "#"),
+                new(TokenType.Word, "Test")
             }
-        ).SetName("WithGridAndWord_1");
+        ).SetName("WithGridAndWord");
         
         yield return new TestCaseData(
             "_Test",
             new List<MdToken>
             {
-                new MdToken(TokenType.Underscore, "_"),
-                new MdToken(TokenType.Word, "Test")
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Word, "Test")
             }
-        ).SetName("WithUnderscoreAndWord_1");
+        ).SetName("WithUnderscoreAndWord");
         
         yield return new TestCaseData(
             "_123",
             new List<MdToken>
             {
-                new MdToken(TokenType.Underscore, "_"),
-                new MdToken(TokenType.Number, "123")
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Number, "123")
             }
-        ).SetName("WithUnderscoreAndNumber_1");
+        ).SetName("WithUnderscoreAndNumber");
         
         yield return new TestCaseData(
             "123Test",
             new List<MdToken>
             {
-                new MdToken(TokenType.Number, "123"),
-                new MdToken(TokenType.Word, "Test")
+                new(TokenType.Number, "123"),
+                new(TokenType.Word, "Test")
             }
-        ).SetName("WithWordAndNumber_1");
+        ).SetName("WithWordAndNumber");
         
         yield return new TestCaseData(
             "_Test_ #Text 123",
             new List<MdToken>
             {
-                new MdToken(TokenType.Underscore, "_"),
-                new MdToken(TokenType.Word, "Test"),
-                new MdToken(TokenType.Underscore, "_"),
-                new MdToken(TokenType.Space, " "),
-                new MdToken(TokenType.Grid, "#"),
-                new MdToken(TokenType.Word, "Text"),
-                new MdToken(TokenType.Space, " "),
-                new MdToken(TokenType.Number, "123")
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Word, "Test"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Space, " "),
+                new(TokenType.Grid, "#"),
+                new(TokenType.Word, "Text"),
+                new(TokenType.Space, " "),
+                new(TokenType.Number, "123")
             }
-        ).SetName("WithAllTokens_1");
+        ).SetName("WithAllTokens");
     }
     
     [Test]
     [TestCaseSource(nameof(LexerTokenizeTestCases))]
-    public void Tokenize_ActualOutputShouldBeEqualExpectedOutput(string input, List<MdToken> expectedOutput)
+    public void Tokenize_ShouldTokenize_Correctly(string input, List<MdToken> expectedOutput)
     {
         var actualInput = MdLexer.Tokenize(input);
         
@@ -74,7 +74,7 @@ public class Tests
     [TestCase('#', TokenType.Grid)]
     [TestCase('_', TokenType.Underscore)]
     [TestCase('1', TokenType.Number)]
-    public void GetTokenType_ActualOutputShouldBeEqualExpectedOutput(char input, TokenType expectedOutput)
+    public void GetTokenType_ShouldGetToken_Correctly(char input, TokenType expectedOutput)
     {
         var actualInput = MdLexer.GetTokenType(input);
         
