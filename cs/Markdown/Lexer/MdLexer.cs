@@ -60,6 +60,7 @@ public static class MdLexer
             '_' => TokenType.Underscore,
             ' ' or '\u00a0' or '\u200b' => TokenType.Space,
             '\n' or '\r' => TokenType.Escape,
+            '\\' => TokenType.Slash,
             _ => throw new ArgumentOutOfRangeException($"Unknown token type: {text}")
         };
 }

@@ -1,7 +1,16 @@
-namespace Markdown.Domain.NodeExtentions;
+using Markdown.Domain;
 
-public class HeaderNode(NodeType type, string? text, List<Node>? childrens) : Node(type, text, childrens)
+namespace Markdown.Domains.NodeExtentions;
+
+public class HeaderNode : Node
 {
     public static int MaxHeaderLevel = 6;
-    public int Level { get; init;  }
+
+    public int Level { get; init; }
+
+    public HeaderNode(int level = 1, List<Node>? childrens = null)
+        : base(NodeType.Header, childrens)
+    {
+        Level = level;
+    }
 }

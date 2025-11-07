@@ -45,6 +45,16 @@ public class Tests
         ).SetName("WithWordAndNumber");
         
         yield return new TestCaseData(
+            "TE_ST",
+            new List<MdToken>
+            {
+                new(TokenType.Word, "TE"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Word, "ST")
+            }
+        ).SetName("WithWordAndNumber");
+        
+        yield return new TestCaseData(
             "_Test_ #Text 123",
             new List<MdToken>
             {

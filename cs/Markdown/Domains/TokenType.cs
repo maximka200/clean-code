@@ -7,5 +7,7 @@ public enum TokenType
     Space, 
     Underscore,
     Grid,
-    Letter,
+    Asterisk,
+    Escape,
+    Slash
 }
