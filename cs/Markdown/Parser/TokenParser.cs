@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Markdown.Domain;
+﻿using Markdown.Domain;
 using Markdown.Domains.NodeExtentions;
 
 namespace Markdown.Parser
@@ -15,162 +13,150 @@ namespace Markdown.Parser
             {
                 var token = tokens[i];
 
-                // Headers 
-                if (token.Type == TokenType.Grid)
+                switch (token.Type)
                 {
-                    var level = 0;
-                    while (i < tokens.Count && tokens[i].Type == TokenType.Grid)
-                    {
-                        level++;
-                        i++;
-                    }
-
-                    // Header must have space after hashes
-                    if (i < tokens.Count && tokens[i].Type == TokenType.Space)
-                    {
-                        i++; // skip space
-                        var contentNodes = new List<Node>();
-                        while (i < tokens.Count && tokens[i].Type != TokenType.Escape)
+                    // Headers 
+                    case TokenType.Grid:
+                        var level = 0;
+                        while (i < tokens.Count && tokens[i].Type == TokenType.Grid)
                         {
-                            contentNodes.Add(new TextNode(tokens[i].Value));
+                            level++;
                             i++;
                         }
 
-                        rootChildren.Add(new HeaderNode(level, contentNodes));
-                        continue;
-                    }
-                    // not a valid header — treat as text
-                    rootChildren.Add(new TextNode(new string('#', level)));
-                    continue;
-                }
-
-                // --- New line ---
-                if (token.Type == TokenType.Escape)
-                {
-                    rootChildren.Add(new Node(NodeType.NewLine));
-                    i++;
-                    continue;
-                }
-
-                // --- Escaped characters ---
-                if (token.Type == TokenType.Slash)
-                {
-                    if (i + 1 < tokens.Count)
-                    {
-                        var next = tokens[i + 1];
-                        rootChildren.Add(new TextNode("\\" + next.Value));
-                        i += 2;
-                    }
-                    else
-                    {
-                        rootChildren.Add(new TextNode("\\"));
-                        i++;
-                    }
-                    continue;
-                }
-
-                // --- Bold / Italic ---
-                if (token.Type == TokenType.Underscore)
-                {
-                    var underscoreCount = 0;
-                    while (i < tokens.Count && tokens[i].Type == TokenType.Underscore)
-                    {
-                        underscoreCount++;
-                        i++;
-                    }
-                    
-                    // check on space after underscore
-                    var spaceCountAfter = 0;
-                    while (i < tokens.Count && tokens[i].Type == TokenType.Space)
-                    {
-                        spaceCountAfter++;
-                        i++;
-                    }
-
-                    if (spaceCountAfter != 0)
-                    {
-                        AddSymbol("_", underscoreCount, rootChildren);
-                        AddSymbol(" ", underscoreCount, rootChildren);
-                        continue;
-                    }
-                    
-                    // italic
-                    if (underscoreCount == 1)
-                    {
-                        var closeIndex = FindClosing(tokens, i, "_");
-                        
-                        if (closeIndex != -1)
+                        // Header must have space after hashes
+                        if (i < tokens.Count && tokens[i].Type == TokenType.Space)
                         {
-                            var inner = Parse(tokens.GetRange(i, closeIndex - i));
-                            rootChildren.Add(new Node(NodeType.Italic, inner.Children));
-                            i = closeIndex + 1;
+                            i++; // skip space
+                            var contentNodes = new List<Node>();
+                            while (i < tokens.Count && tokens[i].Type != TokenType.Escape)
+                            {
+                                contentNodes.Add(new TextNode(tokens[i].Value));
+                                i++;
+                            }
+
+                            rootChildren.Add(new HeaderNode(level, contentNodes));
                             continue;
                         }
-                        AddSymbol("_", underscoreCount, rootChildren);
+
+                        // not a valid header — treat as text
+                        rootChildren.Add(new TextNode(new string('#', level)));
+                        continue;
+                    // --- New line ---
+                    case TokenType.Escape:
+                        rootChildren.Add(new Node(NodeType.NewLine));
+                        i++;
+                        continue;
+                    // --- Escaped characters ---
+                    case TokenType.Slash:
+                    {
+                        if (i + 1 < tokens.Count)
+                        {
+                            var next = tokens[i + 1];
+                            rootChildren.Add(new TextNode("\\" + next.Value));
+                            i += 2;
+                        }
+                        else
+                        {
+                            rootChildren.Add(new TextNode("\\"));
+                            i++;
+                        }
+
                         continue;
                     }
-                    
-                    // bold
-                    if (underscoreCount == 2)
+                    // --- Bold / Italic ---
+                    case TokenType.Underscore:
                     {
-                        var closeIndex = FindClosing(tokens, i, "__");
-                        if (closeIndex != -1)
+                        var underscoreCount = tokens.GetLengthChainOfTokenType(ref i, TokenType.Underscore);
+
+                        // check on space after underscore
+                        var spaceCountAfter = tokens.GetLengthChainOfTokenType(ref i, TokenType.Underscore);
+
+                        if (spaceCountAfter != 0)
                         {
-                            var inner = Parse(tokens.GetRange(i, closeIndex - i));
-                            rootChildren.Add(new Node(NodeType.Bold, inner.Children));
-                            i = closeIndex + 2;
+                            rootChildren.AddSymbol("_", underscoreCount);
+                            rootChildren.AddSymbol(" ", underscoreCount);
                             continue;
                         }
-                        AddSymbol("_", underscoreCount, rootChildren);
-                        continue;
+
+                        switch (underscoreCount)
+                        {
+                            // italic
+                            case 1 or 2:
+                                i += tokens.ParseUnderscoresAndReturnShift(i, underscoreCount, rootChildren);
+                                continue;
+                            default:
+                                rootChildren.AddSymbol("_", underscoreCount);
+                                continue;
+                        }
                     }
-                    
-                    AddSymbol("_", underscoreCount, rootChildren);
-                    continue;
+                    // --- Default: text tokens ---
+                    case TokenType.Word:
+                    case TokenType.Number:
+                    case TokenType.Space:
+                        rootChildren.Add(new TextNode(token.Value));
+                        i++;
+                        continue;
+                    case TokenType.Asterisk:
+                        // TODO: Asterisk logic
+                        continue;
+                    default:
+                        // fallback
+                        rootChildren.Add(new TextNode(token.Value));
+                        i++;
+                        break;
                 }
-
-                // --- Default: text tokens ---
-                if (token.Type == TokenType.Word ||
-                    token.Type == TokenType.Number ||
-                    token.Type == TokenType.Space)
-                {
-                    rootChildren.Add(new TextNode(token.Value));
-                    i++;
-                    continue;
-                }
-
-                // fallback
-                rootChildren.Add(new TextNode(token.Value));
-                i++;
             }
 
             return new Node(NodeType.Root, rootChildren);
         }
 
-        private static void AddSymbol(string symbol, int count, List<Node> root)
+        private static int ParseUnderscoresAndReturnShift(this List<MdToken> tokens,
+            int i,
+            int underscoreCount,
+            List<Node> rootChildren
+        )
         {
-            for (var _ = 0; _ < count; _++)
-                root.Add(new TextNode(symbol));
-        }
+            var closeIndex = tokens.FindClosing(i, new string('_', underscoreCount));
 
-        private static int FindClosing(List<MdToken> tokens, int startIndex, string pattern)
-        {
-            for (var j = startIndex; j < tokens.Count - pattern.Length + 1; j++)
+            if (closeIndex != -1)
             {
-                var match = true;
-                for (var k = 0; k < pattern.Length; k++)
-                {
-                    if (tokens[j + k].Type != TokenType.Underscore)
-                    {
-                        match = false;
-                        break;
-                    }
-                }
+                var spaceCountBefore = tokens.HasSpaceBefore(closeIndex);
 
-                if (match)
-                    return j;
+                if (spaceCountBefore > 0)
+                    return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, spaceCountBefore, rootChildren);
+
+                if (tokens.GetRange(i, closeIndex - i).ContainsNumsOrSpaceOrUnderscore())
+                    return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, 0, rootChildren);
+
+                var inner = Parse(tokens.GetRange(i, closeIndex - i));
+
+                var nodeType = underscoreCount == 1 ? NodeType.Italic : NodeType.Bold;
+                rootChildren.Add(new Node(nodeType, inner.Children));
+                return closeIndex - i + underscoreCount;
             }
-            return -1;
+
+            rootChildren.AddSymbol("_", underscoreCount);
+            return 0;
+        }
+        
+        private static int HandleNonFormattingUnderscore(
+            List<MdToken> tokens,
+            int i,
+            int closeIndex,
+            int underscoreCount,
+            int spaceCountBefore,
+            List<Node> rootChildren)
+        {
+            var inner = Parse(tokens.GetRange(i, closeIndex - i - spaceCountBefore));
+            rootChildren.AddSymbol("_", underscoreCount);
+            rootChildren.AddRange(inner.Children);
+
+            if (spaceCountBefore > 0)
+                rootChildren.AddSymbol(" ", spaceCountBefore);
+
+            rootChildren.AddSymbol("_", underscoreCount);
+            return closeIndex - i + underscoreCount;
         }
     }
 }

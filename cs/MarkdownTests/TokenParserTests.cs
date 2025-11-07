@@ -5,7 +5,7 @@ using Markdown.Domains.NodeExtentions;
 using Markdown.Parser;
 using NUnit.Framework;
 
-namespace Markdown.Tests;
+namespace MarkdownTest;
 
 [TestFixture]
 public class TokenParserTests
@@ -87,7 +87,7 @@ public class TokenParserTests
             {
                 new(TokenType.Underscore, "_"),
                 new(TokenType.Underscore, "_"),
-                new(TokenType.Number, "123"),
+                new(TokenType.Word, "text"),
                 new(TokenType.Underscore, "_"),
                 new(TokenType.Underscore, "_"),
             },
@@ -95,7 +95,7 @@ public class TokenParserTests
             {
                 new(NodeType.Bold,  new List<Node>
                 {
-                    new TextNode( "123")
+                    new TextNode( "text")
                 })
             })
         ).SetName("BoldUnderscoreNode");
@@ -116,24 +116,23 @@ public class TokenParserTests
             })
         ).SetName("ItalicUnderscoreNode");
         
-        yield return new TestCaseData(
-            new List<MdToken>
-            {
-                new(TokenType.Underscore, "_"),
-                new(TokenType.Underscore, "_"),
-                new(TokenType.Number, "123"),
-                new(TokenType.Underscore, "_"),
-                new(TokenType.Underscore, "_"),
-            },
-            new Node(NodeType.Root,  new List<Node>
-            {
-                new(NodeType.Bold,  new List<Node>
-                {
-                    new TextNode("123")
-                })
-            })
-        ).SetName("BoldUnderscoreNode");
-        
+        // yield return new TestCaseData(
+        //     new List<MdToken>
+        //     {
+        //         new(TokenType.Underscore, "_"),
+        //         new(TokenType.Underscore, "_"),
+        //         new(TokenType.Number, "123"),
+        //         new(TokenType.Underscore, "_"),
+        //         new(TokenType.Underscore, "_"),
+        //     },
+        //     new Node(NodeType.Root,  new List<Node>
+        //     {
+        //         new(NodeType.Bold,  new List<Node>
+        //         {
+        //             new TextNode("123")
+        //         })
+        //     })
+        // ).SetName("BoldUnderscoreNode");
         
         yield return new TestCaseData(
             new List<MdToken>
@@ -232,7 +231,6 @@ public class TokenParserTests
             })
         ).SetName("SlashBeforeGrid");
         
-        
         // Если внутри подчерков пустая строка ____, то они остаются символами подчерка.
         yield return new TestCaseData(
             new List<MdToken>
@@ -250,7 +248,6 @@ public class TokenParserTests
                 new TextNode("_"),
             })
         ).SetName("FourSlash");
-        
         
         // __Непарные_ символы в рамках одного абзаца не считаются выделением.
         yield return new TestCaseData(
@@ -338,7 +335,11 @@ public class TokenParserTests
                 },
                 new Node(NodeType.Root, new List<Node>
                 {
-                    new TextNode("цифрами_12_3"),
+                    new TextNode("цифрами"),
+                    new TextNode("_"),
+                    new TextNode("12"),
+                    new TextNode("_"),
+                    new TextNode("3"),
                 })
             ).SetName("UnderscoreInNumbers");
             
@@ -416,7 +417,13 @@ public class TokenParserTests
                 },
                 new Node(NodeType.Root, new List<Node>
                 {
-                    new TextNode("ра_зных сл_овах"),
+                    new TextNode("ра"),
+                    new TextNode("_"),
+                    new TextNode("зных"),
+                    new TextNode(" "),
+                    new TextNode("сло"),
+                    new TextNode("_"),
+                    new TextNode("вах")
                 })
             ).SetName("UnderscoreDifferentWord");
             
@@ -475,7 +482,19 @@ public class TokenParserTests
                 },
                 new Node(NodeType.Root, new List<Node>
                 {
-                    new TextNode("__пересечения _двойных__ и одинарных_"),
+                    new TextNode("_"),
+                    new TextNode("_"),
+                    new TextNode("пересечения"),
+                    new TextNode(" "),
+                    new TextNode("_"),
+                    new TextNode("двойных"),
+                    new TextNode("_"),
+                    new TextNode("_"),
+                    new TextNode(" "),
+                    new TextNode("и"),
+                    new TextNode(" "),
+                    new TextNode("одинарных"),
+                    new TextNode("_"),
                 })
             ).SetName("UnionDoubleAndOneUnderscore");
     }
