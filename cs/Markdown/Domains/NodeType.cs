@@ -8,5 +8,4 @@ public enum NodeType
     Italic,
     Header,
     NewLine
-    // TODO: Implement NodeType
 }

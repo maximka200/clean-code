@@ -148,7 +148,16 @@ public class TokenParserTests
                 new(TokenType.Space, " "),
                 new(TokenType.Grid, "#"),
                 new(TokenType.Grid, "#"),
-                new(TokenType.Escape, "\n")
+                new(TokenType.Escape, "\n"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Word, "word"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Space, " "),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Word, "word"),
+                new(TokenType.Underscore, "_"),
             },
             new Node(NodeType.Root, new List<Node>
             {
@@ -164,7 +173,16 @@ public class TokenParserTests
                     new TextNode("##"),
                     new TextNode(" "),
                 }),
-                new(NodeType.NewLine)
+                new(NodeType.NewLine),
+                new(NodeType.Bold, new List<Node>
+                {
+                    new TextNode("word")
+                }),
+                new TextNode(" "),
+                new(NodeType.Italic, new List<Node>
+                {
+                    new TextNode("word")
+                })
             })
         ).SetName("WithDifferentTags");
     }
@@ -289,7 +307,8 @@ public class TokenParserTests
                     new(NodeType.Italic, new List<Node>
                     {
                         new TextNode("test")
-                    })
+                    }),
+                    new TextNode("test")
                 })
             })).SetName("WithinDoubleSelectionSingle");
         
@@ -311,7 +330,6 @@ public class TokenParserTests
             {
                 new(NodeType.Italic, new List<Node>
                 {
-                    new TextNode("_"),
                     new TextNode("test"),
                     new TextNode("_"),
                     new TextNode("_"),
@@ -319,7 +337,7 @@ public class TokenParserTests
                     new TextNode("_"),
                     new TextNode("_"),
                     new TextNode("test"),
-                    new TextNode("_"),
+
                 })
             })).SetName("WithinSingleSelectionDouble");
         

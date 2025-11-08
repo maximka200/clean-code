@@ -130,12 +130,15 @@ namespace Markdown.Parser
                 if (spaceCountBefore > 0)
                     return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, spaceCountBefore, rootChildren);
                 
-                // проверка на _ в разных словах, _ в словах с числами
-                if (tokens.IsUnderscoreInDifferentWord(i - 1, closeIndex, underscoreCount) || tokens.IsUnderscoreInWordWithNumbers(i - 1, closeIndex, underscoreCount)
-                    || tokens.GetRange(i, closeIndex - i).ContainsTokenType(TokenType.Underscore))
-                    return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, 0, rootChildren);
-                
                 var nodeType = underscoreCount == 1 ? NodeType.Italic : NodeType.Bold;
+                
+                // проверка на _ в разных словах, _ в словах с числами
+                if (context == NodeContext.Italic 
+                    || tokens.IsUnderscoreInDifferentWord(i - 1, closeIndex, underscoreCount) 
+                    || tokens.IsUnderscoreInWordWithNumbers(i - 1, closeIndex, underscoreCount)
+                    || tokens.GetRange(i, closeIndex - i).HaveNotPairedUnderscore())
+                    return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, 0, rootChildren, context);
+                
                 var inner = Parse(tokens.GetRange(i, closeIndex - i), Node.GetNodeContext(nodeType));
 
                 rootChildren.Add(new Node(nodeType, inner.Children));

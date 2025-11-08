@@ -49,10 +49,8 @@ public static class ListMdTokenExtension
         var hasNumber = range.ContainsTokenType(TokenType.Number);
         
         var prevIsWord = startIndex > 0 && tokens[startIndex - 1].Type == TokenType.Word;
-        var nextIsWord = closeIndex + underscoreCount < tokens.Count &&
-                         tokens[closeIndex + underscoreCount].Type == TokenType.Word;
 
-        return hasNumber && (prevIsWord || nextIsWord);
+        return hasNumber && (prevIsWord);
     }
 
     
@@ -64,10 +62,18 @@ public static class ListMdTokenExtension
 
     internal static int FindClosing(this List<MdToken> tokens, int startIndex, string pattern, TokenType tokenType)
     {
-        for (var j = startIndex; j < tokens.Count - pattern.Length + 1; j++)
+        if (tokens is null) throw new ArgumentNullException(nameof(tokens));
+        if (startIndex < 0 || startIndex >= tokens.Count) return -1;
+
+        var patternLen = pattern?.Length ?? 0;
+        if (patternLen <= 0) return -1;
+        
+        var maxStart = tokens.Count - patternLen;
+
+        for (var j = startIndex; j <= maxStart; j++)
         {
             var match = true;
-            for (var k = 0; k < pattern.Length; k++)
+            for (var k = 0; k < patternLen; k++)
             {
                 if (tokens[j + k].Type != tokenType)
                 {
@@ -78,18 +84,19 @@ public static class ListMdTokenExtension
 
             if (!match)
                 continue;
+            
+            var prevIsSame = (j - 1) >= 0 && tokens[j - 1].Type == tokenType;
+            var nextIsSame = (j + patternLen) < tokens.Count && tokens[j + patternLen].Type == tokenType;
 
-            // доп проверка на случай: _токен__токен___
-            var nextIndex = j + pattern.Length;
-            var nextIsSame = nextIndex < tokens.Count && tokens[nextIndex].Type == tokenType;
-            if (nextIsSame)
-                continue; 
+            if (prevIsSame || nextIsSame)
+                continue;
 
             return j;
         }
 
         return -1;
     }
+
 
 
     internal static int GetLengthChainOfTokenType(this List<MdToken> tokens, ref int startIndex, TokenType tokenType)
@@ -101,5 +108,10 @@ public static class ListMdTokenExtension
             startIndex++;
         }
         return tokenChainLength;
+    }
+
+    internal static bool HaveNotPairedUnderscore(this List<MdToken> tokens)
+    {
+        return tokens.Count(token => token.Type == TokenType.Underscore) % 2 == 1;
     }
 }

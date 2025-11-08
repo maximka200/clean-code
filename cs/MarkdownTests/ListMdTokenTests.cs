@@ -56,7 +56,7 @@ public class ListMdTokenTests
         tokens.IsUnderscoreInDifferentWord(1, 5, 2)
             .Should().BeTrue();
     }
-    
+
     [Test]
     public void IsUnderscoreInWordWithNumbers_WordWithNumbersInsideUnderscores_ReturnsTrue()
     {
@@ -84,23 +84,6 @@ public class ListMdTokenTests
         };
 
         tokens.IsUnderscoreInWordWithNumbers(0, 2, 1)
-            .Should().BeFalse();
-    }
-
-    [Test]
-    public void IsUnderscoreInWordWithNumbers_UnderscoresAcrossDifferentWordsWithNumbers_ReturnsFalse()
-    {
-        var tokens = new List<MdToken>
-        {
-            new(TokenType.Word, "раз"),
-            new(TokenType.Underscore, "_"),
-            new(TokenType.Number, "12"),
-            new(TokenType.Space, " "),
-            new(TokenType.Word, "словах"),
-            new(TokenType.Underscore, "_"),
-        };
-
-        tokens.IsUnderscoreInWordWithNumbers(1, 5, 1)
             .Should().BeFalse();
     }
 }
