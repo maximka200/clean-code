@@ -116,23 +116,23 @@ public class TokenParserTests
             })
         ).SetName("ItalicUnderscoreNode");
         
-        // yield return new TestCaseData(
-        //     new List<MdToken>
-        //     {
-        //         new(TokenType.Underscore, "_"),
-        //         new(TokenType.Underscore, "_"),
-        //         new(TokenType.Number, "123"),
-        //         new(TokenType.Underscore, "_"),
-        //         new(TokenType.Underscore, "_"),
-        //     },
-        //     new Node(NodeType.Root,  new List<Node>
-        //     {
-        //         new(NodeType.Bold,  new List<Node>
-        //         {
-        //             new TextNode("123")
-        //         })
-        //     })
-        // ).SetName("BoldUnderscoreNode");
+         yield return new TestCaseData(
+             new List<MdToken>
+             {
+                 new(TokenType.Underscore, "_"),
+                 new(TokenType.Underscore, "_"),
+                 new(TokenType.Number, "123"),
+                 new(TokenType.Underscore, "_"),
+                 new(TokenType.Underscore, "_"),
+             },
+             new Node(NodeType.Root,  new List<Node>
+             {
+                 new(NodeType.Bold,  new List<Node>
+                 {
+                     new TextNode("123")
+                 })
+             })
+         ).SetName("BoldUnderscoreNode");
         
         yield return new TestCaseData(
             new List<MdToken>

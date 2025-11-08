@@ -5,7 +5,7 @@ namespace Markdown.Parser
 {
     public static class TokenParser
     {
-        public static Node Parse(List<MdToken> tokens)
+        public static Node Parse(List<MdToken> tokens, NodeContext context = NodeContext.None)
         {
             var rootChildren = new List<Node>();
             var i = 0;
@@ -18,6 +18,7 @@ namespace Markdown.Parser
                     // Headers 
                     case TokenType.Grid:
                         var level = 0;
+                        
                         while (i < tokens.Count && tokens[i].Type == TokenType.Grid)
                         {
                             level++;
@@ -70,7 +71,7 @@ namespace Markdown.Parser
                         var underscoreCount = tokens.GetLengthChainOfTokenType(ref i, TokenType.Underscore);
 
                         // check on space after underscore
-                        var spaceCountAfter = tokens.GetLengthChainOfTokenType(ref i, TokenType.Underscore);
+                        var spaceCountAfter = tokens.GetLengthChainOfTokenType(ref i, TokenType.Space);
 
                         if (spaceCountAfter != 0)
                         {
@@ -81,9 +82,9 @@ namespace Markdown.Parser
 
                         switch (underscoreCount)
                         {
-                            // italic
+                            // italic or bold
                             case 1 or 2:
-                                i += tokens.ParseUnderscoresAndReturnShift(i, underscoreCount, rootChildren);
+                                i += tokens.ParseUnderscoresAndReturnShift(i, underscoreCount, rootChildren, context);
                                 continue;
                             default:
                                 rootChildren.AddSymbol("_", underscoreCount);
@@ -111,27 +112,32 @@ namespace Markdown.Parser
             return new Node(NodeType.Root, rootChildren);
         }
 
-        private static int ParseUnderscoresAndReturnShift(this List<MdToken> tokens,
+        private static int ParseUnderscoresAndReturnShift(
+            this List<MdToken> tokens,
             int i,
             int underscoreCount,
-            List<Node> rootChildren
+            List<Node> rootChildren,
+            NodeContext context = NodeContext.None
         )
         {
-            var closeIndex = tokens.FindClosing(i, new string('_', underscoreCount));
-
+            var closeIndex = tokens.FindClosing(i, new string('_', underscoreCount), TokenType.Underscore);
+            
             if (closeIndex != -1)
             {
                 var spaceCountBefore = tokens.HasSpaceBefore(closeIndex);
 
+                // проверка на пробелы до
                 if (spaceCountBefore > 0)
                     return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, spaceCountBefore, rootChildren);
-
-                if (tokens.GetRange(i, closeIndex - i).ContainsNumsOrSpaceOrUnderscore())
+                
+                // проверка на _ в разных словах, _ в словах с числами
+                if (tokens.IsUnderscoreInDifferentWord(i - 1, closeIndex, underscoreCount) || tokens.IsUnderscoreInWordWithNumbers(i - 1, closeIndex, underscoreCount)
+                    || tokens.GetRange(i, closeIndex - i).ContainsTokenType(TokenType.Underscore))
                     return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, 0, rootChildren);
-
-                var inner = Parse(tokens.GetRange(i, closeIndex - i));
-
+                
                 var nodeType = underscoreCount == 1 ? NodeType.Italic : NodeType.Bold;
+                var inner = Parse(tokens.GetRange(i, closeIndex - i), Node.GetNodeContext(nodeType));
+
                 rootChildren.Add(new Node(nodeType, inner.Children));
                 return closeIndex - i + underscoreCount;
             }
@@ -139,6 +145,7 @@ namespace Markdown.Parser
             rootChildren.AddSymbol("_", underscoreCount);
             return 0;
         }
+
         
         private static int HandleNonFormattingUnderscore(
             List<MdToken> tokens,
@@ -146,9 +153,10 @@ namespace Markdown.Parser
             int closeIndex,
             int underscoreCount,
             int spaceCountBefore,
-            List<Node> rootChildren)
+            List<Node> rootChildren,
+            NodeContext context = NodeContext.None)
         {
-            var inner = Parse(tokens.GetRange(i, closeIndex - i - spaceCountBefore));
+            var inner = Parse(tokens.GetRange(i, closeIndex - i - spaceCountBefore), context);
             rootChildren.AddSymbol("_", underscoreCount);
             rootChildren.AddRange(inner.Children);
 
