@@ -1,4 +1,4 @@
-﻿namespace Markdown.Domain;
+﻿namespace Markdown.Domains;
 
 public enum NodeContext
 {

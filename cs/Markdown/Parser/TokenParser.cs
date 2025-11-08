@@ -1,5 +1,5 @@
-﻿using Markdown.Domain;
-using Markdown.Domains.NodeExtentions;
+﻿using Markdown.Domains;
+using Markdown.Domains.NodeExtensions;
 
 namespace Markdown.Parser
 {
@@ -18,7 +18,7 @@ namespace Markdown.Parser
                     // Headers 
                     case TokenType.Grid:
                         var level = 0;
-                        
+
                         while (i < tokens.Count && tokens[i].Type == TokenType.Grid)
                         {
                             level++;
@@ -121,24 +121,26 @@ namespace Markdown.Parser
         )
         {
             var closeIndex = tokens.FindClosing(i, new string('_', underscoreCount), TokenType.Underscore);
-            
+
             if (closeIndex != -1)
             {
                 var spaceCountBefore = tokens.HasSpaceBefore(closeIndex);
 
                 // проверка на пробелы до
                 if (spaceCountBefore > 0)
-                    return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, spaceCountBefore, rootChildren);
-                
+                    return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, spaceCountBefore,
+                        rootChildren);
+
                 var nodeType = underscoreCount == 1 ? NodeType.Italic : NodeType.Bold;
-                
+
                 // проверка на _ в разных словах, _ в словах с числами
-                if (context == NodeContext.Italic 
-                    || tokens.IsUnderscoreInDifferentWord(i - 1, closeIndex, underscoreCount) 
+                if (context == NodeContext.Italic
+                    || tokens.IsUnderscoreInDifferentWord(i - 1, closeIndex, underscoreCount)
                     || tokens.IsUnderscoreInWordWithNumbers(i - 1, closeIndex, underscoreCount)
                     || tokens.GetRange(i, closeIndex - i).HaveNotPairedUnderscore())
-                    return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, 0, rootChildren, context);
-                
+                    return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, 0, rootChildren,
+                        context);
+
                 var inner = Parse(tokens.GetRange(i, closeIndex - i), Node.GetNodeContext(nodeType));
 
                 rootChildren.Add(new Node(nodeType, inner.Children));
@@ -149,7 +151,7 @@ namespace Markdown.Parser
             return 0;
         }
 
-        
+
         private static int HandleNonFormattingUnderscore(
             List<MdToken> tokens,
             int i,

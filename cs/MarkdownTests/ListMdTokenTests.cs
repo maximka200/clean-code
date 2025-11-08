@@ -1,7 +1,8 @@
 ﻿using FluentAssertions;
-using Markdown.Domain;
+using Markdown.Domains;
 using Markdown.Parser;
-using NUnit.Framework;
+
+namespace MarkdownTest;
 
 [TestFixture]
 public class ListMdTokenTests

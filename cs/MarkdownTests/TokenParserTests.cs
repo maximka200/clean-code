@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using FluentAssertions;
-using Markdown.Domain;
-using Markdown.Domains.NodeExtentions;
+using Markdown.Domains;
+using Markdown.Domains.NodeExtensions;
 using Markdown.Parser;
-using NUnit.Framework;
 
 namespace MarkdownTest;
 

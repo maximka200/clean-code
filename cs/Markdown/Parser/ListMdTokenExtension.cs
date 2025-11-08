@@ -1,5 +1,5 @@
-﻿using Markdown.Domain;
-using Markdown.Domains.NodeExtentions;
+﻿using Markdown.Domains;
+using Markdown.Domains.NodeExtensions;
 
 namespace Markdown.Parser;
 
@@ -17,7 +17,7 @@ public static class ListMdTokenExtension
     }
     
     // fix: добавить нормальную проверку на слово с числом, на _ внутри двух разных слов
-    internal static bool ContainsTokenType(this List<MdToken> tokens, TokenType tokenType)
+    private static bool ContainsTokenType(this List<MdToken> tokens, TokenType tokenType)
     {
         return tokens.Any(token => token.Type == tokenType);
     }
@@ -85,8 +85,8 @@ public static class ListMdTokenExtension
             if (!match)
                 continue;
             
-            var prevIsSame = (j - 1) >= 0 && tokens[j - 1].Type == tokenType;
-            var nextIsSame = (j + patternLen) < tokens.Count && tokens[j + patternLen].Type == tokenType;
+            var prevIsSame = j - 1 >= 0 && tokens[j - 1].Type == tokenType;
+            var nextIsSame = j + patternLen < tokens.Count && tokens[j + patternLen].Type == tokenType;
 
             if (prevIsSame || nextIsSame)
                 continue;

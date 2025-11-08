@@ -1,5 +1,5 @@
 using FluentAssertions;
-using Markdown.Domain;
+using Markdown.Domains;
 using Markdown.Lexer;
 
 namespace MarkdownTest;
@@ -16,7 +16,7 @@ public class Tests
                 new(TokenType.Word, "Test")
             }
         ).SetName("WithGridAndWord");
-        
+
         yield return new TestCaseData(
             "_Test",
             new List<MdToken>
@@ -25,7 +25,7 @@ public class Tests
                 new(TokenType.Word, "Test")
             }
         ).SetName("WithUnderscoreAndWord");
-        
+
         yield return new TestCaseData(
             "_123",
             new List<MdToken>
@@ -34,7 +34,7 @@ public class Tests
                 new(TokenType.Number, "123")
             }
         ).SetName("WithUnderscoreAndNumber");
-        
+
         yield return new TestCaseData(
             "123Test",
             new List<MdToken>
@@ -43,7 +43,7 @@ public class Tests
                 new(TokenType.Word, "Test")
             }
         ).SetName("WithWordAndNumber");
-        
+
         yield return new TestCaseData(
             "TE_ST",
             new List<MdToken>
@@ -53,7 +53,7 @@ public class Tests
                 new(TokenType.Word, "ST")
             }
         ).SetName("WithWordAndNumber");
-        
+
         yield return new TestCaseData(
             "_Test_ #Text 123",
             new List<MdToken>
@@ -69,16 +69,16 @@ public class Tests
             }
         ).SetName("WithAllTokens");
     }
-    
+
     [Test]
     [TestCaseSource(nameof(LexerTokenizeTestCases))]
     public void Tokenize_ShouldTokenize_Correctly(string input, List<MdToken> expectedOutput)
     {
         var actualInput = MdLexer.Tokenize(input);
-        
+
         actualInput.Should().BeEquivalentTo(expectedOutput);
     }
-    
+
     [Test]
     [TestCase('T', TokenType.Word)]
     [TestCase('#', TokenType.Grid)]
@@ -87,7 +87,7 @@ public class Tests
     public void GetTokenType_ShouldGetToken_Correctly(char input, TokenType expectedOutput)
     {
         var actualInput = MdLexer.GetTokenType(input);
-        
+
         actualInput.Should().Be(expectedOutput);
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using Markdown.Domain;
+using Markdown.Domains;
 
 namespace Markdown.Lexer;
 
@@ -11,7 +11,7 @@ public static class MdLexer
     public static List<MdToken> Tokenize(string text)
     {
         var tokens = new List<MdToken>();
-    
+
         for (var i = 0; i < text.Length; i++)
         {
             var symbol = text[i];
@@ -22,7 +22,7 @@ public static class MdLexer
                 case TokenType.Word or TokenType.Number:
                     var (value, nextIndex) = CollectFullValue(text, i,
                         tokenType is TokenType.Word ? char.IsLetter : char.IsNumber
-                        );
+                    );
                     tokens.Add(new MdToken(tokenType, value));
                     i = nextIndex;
                     break;
@@ -35,7 +35,8 @@ public static class MdLexer
         return tokens;
     }
 
-    private static (string word, int nextIndex) CollectFullValue(string text, int startIndex, Func<char, bool> predicate)
+    private static (string word, int nextIndex) CollectFullValue(string text, int startIndex,
+        Func<char, bool> predicate)
     {
         var value = new StringBuilder();
         value.Append(text[startIndex]);

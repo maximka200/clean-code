@@ -1,10 +1,10 @@
-﻿namespace Markdown.Domain;
+﻿namespace Markdown.Domains;
 
 public enum TokenType
 {
     Word,
     Number,
-    Space, 
+    Space,
     Underscore,
     Grid,
     Asterisk,
