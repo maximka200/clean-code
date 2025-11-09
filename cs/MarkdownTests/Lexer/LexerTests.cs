@@ -6,7 +6,7 @@ namespace MarkdownTest;
 
 public class Tests
 {
-    public static IEnumerable<TestCaseData> LexerTokenizeTestCases()
+    private static IEnumerable<TestCaseData> LexerTokenizeTestCases()
     {
         yield return new TestCaseData(
             "#Test",

@@ -13,17 +13,18 @@ public static class ListMdTokenExtension
             spaceCount++;
             index--;
         }
+
         return spaceCount;
     }
-    
-    // fix: добавить нормальную проверку на слово с числом, на _ внутри двух разных слов
+
     private static bool ContainsTokenType(this List<MdToken> tokens, TokenType tokenType)
     {
         return tokens.Any(token => token.Type == tokenType);
     }
 
     // проверка на то, что под__черкивания в раз__ных словах, _разных сл_овах, раз_ных словах_
-    public static bool IsUnderscoreInDifferentWord(this List<MdToken> tokens, int startIndex, int closeIndex, int underscoreCount)
+    public static bool IsUnderscoreInDifferentWord(this List<MdToken> tokens, int startIndex, int closeIndex,
+        int underscoreCount)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(closeIndex, startIndex);
 
@@ -35,25 +36,25 @@ public static class ListMdTokenExtension
         var hasSeparator = range.ContainsTokenType(TokenType.Space) || range.ContainsTokenType(TokenType.Escape);
 
         var prevIsWord = startIndex > 0 && tokens[startIndex - 1].Type == TokenType.Word;
-        var nextIsWord = nextTokenInd  < tokens.Count && tokens[nextTokenInd].Type == TokenType.Word;
+        var nextIsWord = nextTokenInd < tokens.Count && tokens[nextTokenInd].Type == TokenType.Word;
 
         return hasSeparator && (prevIsWord || nextIsWord);
     }
-    
-    public static bool IsUnderscoreInWordWithNumbers(this List<MdToken> tokens, int startIndex, int closeIndex, int underscoreCount)
+
+    public static bool IsUnderscoreInWordWithNumbers(this List<MdToken> tokens, int startIndex, int closeIndex,
+        int underscoreCount)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(closeIndex, startIndex);
-        
-        var range = tokens.GetRange(startIndex + underscoreCount, closeIndex - startIndex );
+
+        var range = tokens.GetRange(startIndex + underscoreCount, closeIndex - startIndex);
 
         var hasNumber = range.ContainsTokenType(TokenType.Number);
-        
+
         var prevIsWord = startIndex > 0 && tokens[startIndex - 1].Type == TokenType.Word;
 
         return hasNumber && (prevIsWord);
     }
 
-    
     internal static void AddSymbol(this List<Node> root, string symbol, int count)
     {
         for (var _ = 0; _ < count; _++)
@@ -67,7 +68,7 @@ public static class ListMdTokenExtension
 
         var patternLen = pattern?.Length ?? 0;
         if (patternLen <= 0) return -1;
-        
+
         var maxStart = tokens.Count - patternLen;
 
         for (var j = startIndex; j <= maxStart; j++)
@@ -84,7 +85,7 @@ public static class ListMdTokenExtension
 
             if (!match)
                 continue;
-            
+
             var prevIsSame = j - 1 >= 0 && tokens[j - 1].Type == tokenType;
             var nextIsSame = j + patternLen < tokens.Count && tokens[j + patternLen].Type == tokenType;
 
@@ -97,8 +98,6 @@ public static class ListMdTokenExtension
         return -1;
     }
 
-
-
     internal static int GetLengthChainOfTokenType(this List<MdToken> tokens, ref int startIndex, TokenType tokenType)
     {
         var tokenChainLength = 0;
@@ -107,6 +106,7 @@ public static class ListMdTokenExtension
             tokenChainLength++;
             startIndex++;
         }
+
         return tokenChainLength;
     }
 
