@@ -6,7 +6,7 @@ namespace Markdown;
 
 public class Markdown
 {
-    public string Render(string text)
+    public static string Render(string text)
     {
         var tokens = MdLexer.Tokenize(text);
         var parseTree = TokenParser.Parse(tokens);

@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Markdown.Domains;
 using Markdown.Domains.NodeExtensions;
+// ReSharper disable UseCollectionExpression
 
 namespace MarkdownTest.TokenParser;
 

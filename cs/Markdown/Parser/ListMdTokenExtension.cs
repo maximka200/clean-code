@@ -1,6 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Markdown.Domains;
+﻿using Markdown.Domains;
 using Markdown.Domains.NodeExtensions;
+// ReSharper disable InvalidXmlDocComment
 
 namespace Markdown.Parser;
 
@@ -70,7 +70,6 @@ public static class ListMdTokenExtension
     /// </summary>
     /// <param name="startIndex">Индекс первого токена после конца открывающей цепочки токенов</param>
     /// <returns>Индекс первого токена в закрывающей цепочке</returns>
-    [SuppressMessage("ReSharper", "InvalidXmlDocComment")]
     internal static int FindClosing(this List<MdToken> tokens, int startIndex, int patternLen, TokenType tokenType)
     {
         ArgumentNullException.ThrowIfNull(tokens);
