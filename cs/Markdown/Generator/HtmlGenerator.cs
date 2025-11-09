@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Markdown.Domains;
+﻿using Markdown.Domains;
 using Markdown.Domains.NodeExtensions;
 
 namespace Markdown.Generator;

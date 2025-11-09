@@ -2,7 +2,7 @@
 using Markdown.Domains;
 using Markdown.Parser;
 
-namespace MarkdownTest;
+namespace MarkdownTest.TokenParser;
 
 [TestFixture]
 public class ListMdTokenTests
@@ -17,7 +17,7 @@ public class ListMdTokenTests
             new(TokenType.Word, "ных"),
             new(TokenType.Space, " "),
             new(TokenType.Word, "словах"),
-            new(TokenType.Underscore, "_"),
+            new(TokenType.Underscore, "_")
         };
 
         tokens.IsUnderscoreInDifferentWord(1, 5, 1)
@@ -32,7 +32,7 @@ public class ListMdTokenTests
             new(TokenType.Word, "под"),
             new(TokenType.Underscore, "_"),
             new(TokenType.Word, "черки"),
-            new(TokenType.Underscore, "_"),
+            new(TokenType.Underscore, "_")
         };
 
         tokens.IsUnderscoreInDifferentWord(1, 3, 1)
@@ -67,7 +67,7 @@ public class ListMdTokenTests
             new(TokenType.Underscore, "_"),
             new(TokenType.Word, "о"),
             new(TokenType.Number, "123"),
-            new(TokenType.Underscore, "_"),
+            new(TokenType.Underscore, "_")
         };
 
         tokens.IsUnderscoreInWordWithNumbers(1, 3, 1)
@@ -81,7 +81,7 @@ public class ListMdTokenTests
         {
             new(TokenType.Underscore, "_"),
             new(TokenType.Number, "123"),
-            new(TokenType.Underscore, "_"),
+            new(TokenType.Underscore, "_")
         };
 
         tokens.IsUnderscoreInWordWithNumbers(0, 2, 1)

@@ -70,7 +70,7 @@ public static class TokenParser
         if (i + 1 < tokens.Count)
         {
             var next = tokens[i + 1];
-            rootChildren.Add(new TextNode("\\" + next.Value));
+            rootChildren.Add(new TextNode(next.Value));
             i += 2;
         }
         else
@@ -79,6 +79,7 @@ public static class TokenParser
             i++;
         }
     }
+
 
     private static void HandleUnderscore(List<MdToken> tokens, ref int i, List<Node> rootChildren, NodeContext context)
     {

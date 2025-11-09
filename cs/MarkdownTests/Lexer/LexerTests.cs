@@ -2,7 +2,7 @@ using FluentAssertions;
 using Markdown.Domains;
 using Markdown.Lexer;
 
-namespace MarkdownTest;
+namespace MarkdownTest.Lexer;
 
 public class Tests
 {

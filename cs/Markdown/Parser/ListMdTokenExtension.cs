@@ -1,4 +1,5 @@
-﻿using Markdown.Domains;
+﻿using System.Diagnostics.CodeAnalysis;
+using Markdown.Domains;
 using Markdown.Domains.NodeExtensions;
 
 namespace Markdown.Parser;
@@ -22,7 +23,9 @@ public static class ListMdTokenExtension
         return tokens.Any(token => token.Type == tokenType);
     }
 
-    // проверка на то, что под__черкивания в раз__ных словах, _разных сл_овах, раз_ных словах_
+    /// <summary>
+    /// Проверка на то, что под__черкивания в раз__ных словах, _разных сл_овах, раз_ных словах_
+    /// </summary>
     public static bool IsUnderscoreInDifferentWord(this List<MdToken> tokens, int startIndex, int closeIndex,
         int underscoreCount)
     {
@@ -52,7 +55,7 @@ public static class ListMdTokenExtension
 
         var prevIsWord = startIndex > 0 && tokens[startIndex - 1].Type == TokenType.Word;
 
-        return hasNumber && (prevIsWord);
+        return hasNumber && prevIsWord;
     }
 
     internal static void AddSymbol(this List<Node> root, string symbol, int count)
@@ -61,12 +64,18 @@ public static class ListMdTokenExtension
             root.Add(new TextNode(symbol));
     }
 
-    internal static int FindClosing(this List<MdToken> tokens, int startIndex, string pattern, TokenType tokenType)
-    {
-        if (tokens is null) throw new ArgumentNullException(nameof(tokens));
-        if (startIndex < 0 || startIndex >= tokens.Count) return -1;
 
-        var patternLen = pattern?.Length ?? 0;
+    /// <summary>
+    /// Поиск закрывающего индекса закрывающего тега
+    /// </summary>
+    /// <param name="startIndex">Индекс первого токена после конца открывающей цепочки токенов</param>
+    /// <returns>Индекс первого токена в закрывающей цепочке</returns>
+    [SuppressMessage("ReSharper", "InvalidXmlDocComment")]
+    internal static int FindClosing(this List<MdToken> tokens, int startIndex, int patternLen, TokenType tokenType)
+    {
+        ArgumentNullException.ThrowIfNull(tokens);
+        if (startIndex < 0 || startIndex >= tokens.Count) return -1;
+        
         if (patternLen <= 0) return -1;
 
         var maxStart = tokens.Count - patternLen;
@@ -75,13 +84,11 @@ public static class ListMdTokenExtension
         {
             var match = true;
             for (var k = 0; k < patternLen; k++)
-            {
                 if (tokens[j + k].Type != tokenType)
                 {
                     match = false;
                     break;
                 }
-            }
 
             if (!match)
                 continue;

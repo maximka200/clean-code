@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using Markdown.Domains;
 using Markdown.Domains.NodeExtensions;
-using Markdown.Generator;
 
 namespace MarkdownTest.HtmlGenerator;
 
@@ -20,7 +19,7 @@ public class HtmlGeneratorTests
                         new TextNode("Header"),
                         new TextNode(" "),
                         new TextNode("##"),
-                        new TextNode(" "),
+                        new TextNode(" ")
                     }),
                     new(NodeType.NewLine),
                     new(NodeType.Bold, new List<Node> { new TextNode("word") }),
