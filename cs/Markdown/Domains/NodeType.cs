@@ -7,5 +7,6 @@ public enum NodeType
     Bold,
     Italic,
     Header,
+    Link,
     NewLine
 }

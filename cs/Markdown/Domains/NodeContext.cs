@@ -2,7 +2,6 @@
 
 public enum NodeContext
 {
-    Bold,
     Italic,
     None
 }

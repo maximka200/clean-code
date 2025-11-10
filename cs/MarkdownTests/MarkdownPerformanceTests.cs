@@ -1,12 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using FluentAssertions;
-using Markdown.Lexer;
 
 namespace MarkdownTest;
 
 [TestFixture]
-public class PerformanceTests
+public class MarkdownPerformanceTests
 {
     [Test]
     public void Markdown_Render_ShouldWorkFast()
@@ -20,7 +19,7 @@ public class PerformanceTests
             var markdown = GenerateRandomMarkdown(length);
             sw.Start();
 
-            var tokens = MdLexer.Tokenize(markdown);
+            var tokens = Markdown.Lexer.MdLexer.Tokenize(markdown);
             var ast = Markdown.Parser.TokenParser.Parse(tokens);
             _ = Markdown.Generator.HtmlGenerator.Generate(ast);
 
@@ -28,9 +27,10 @@ public class PerformanceTests
             timeSpans.Add(sw.Elapsed);
             sw.Reset();
         }
+
         var timeRatios = Enumerable.Range(0, timeSpans.Count - 2)
             .Select(i => (double)timeSpans[i + 1].Ticks / timeSpans[i].Ticks);
-        
+
         timeRatios.Should()
             .OnlyContain(timeRatio => timeRatio < Math.Log2(scale) * scale);
     }
@@ -38,7 +38,7 @@ public class PerformanceTests
     private static string GenerateRandomMarkdown(int len)
     {
         var rand = new Random();
-        var specElements = new[] { " ", "_", "__", "#", "\\", "\\n" };
+        var specElements = new[] { " ", "_", "__", "#", "\\", "\\n", "(", ")", "[", "]" };
         var elements = "ABCDEFGHIJKLMNOPQRSTUVWXY1234567890".Select(c => c.ToString()).Concat(specElements).ToList();
 
         var sb = new StringBuilder();

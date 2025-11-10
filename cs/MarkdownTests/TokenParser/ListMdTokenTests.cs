@@ -87,4 +87,41 @@ public class ListMdTokenTests
         tokens.IsUnderscoreInWordWithNumbers(0, 2, 1)
             .Should().BeFalse();
     }
+
+    [Test]
+    public void FindClosing_SquareBrackets_ShouldReturnCorrectIndex()
+    {
+        var tokens = new List<MdToken>
+        {
+            new(TokenType.LeftSquareBracket, "["),
+            new(TokenType.Word, "example"),
+            new(TokenType.Number, "123"),
+            new(TokenType.RightSquareBracket, "]"),
+            new(TokenType.Word, "example")
+        };
+        const int expectedCloseIndex = 3;
+
+        var closeIndex = tokens.FindClosing(1, 1, TokenType.RightSquareBracket);
+
+        closeIndex.Should().Be(expectedCloseIndex);
+    }
+
+    [Test]
+    public void FindClosing_ParenthesisBrackets_ShouldReturnCorrectIndex()
+    {
+        var tokens = new List<MdToken>
+        {
+            new(TokenType.Word, "example"),
+            new(TokenType.LeftParenthesis, "("),
+            new(TokenType.Word, "example"),
+            new(TokenType.Number, "123"),
+            new(TokenType.RightParenthesis, ")"),
+            new(TokenType.Word, "example")
+        };
+        const int expectedCloseIndex = 4;
+
+        var closeIndex = tokens.FindClosing(2, 1, TokenType.RightParenthesis);
+
+        closeIndex.Should().Be(expectedCloseIndex);
+    }
 }

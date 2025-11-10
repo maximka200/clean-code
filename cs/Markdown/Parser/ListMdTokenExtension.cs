@@ -1,5 +1,6 @@
 ﻿using Markdown.Domains;
 using Markdown.Domains.NodeExtensions;
+
 // ReSharper disable InvalidXmlDocComment
 
 namespace Markdown.Parser;
@@ -24,7 +25,7 @@ public static class ListMdTokenExtension
     }
 
     /// <summary>
-    /// Проверка на то, что под__черкивания в раз__ных словах, _разных сл_овах, раз_ных словах_
+    ///     Проверка на то, что под__черкивания в раз__ных словах, _разных сл_овах, раз_ных словах_
     /// </summary>
     public static bool IsUnderscoreInDifferentWord(this List<MdToken> tokens, int startIndex, int closeIndex,
         int underscoreCount)
@@ -63,18 +64,17 @@ public static class ListMdTokenExtension
         for (var _ = 0; _ < count; _++)
             root.Add(new TextNode(symbol));
     }
-
-
+    
     /// <summary>
-    /// Поиск закрывающего индекса закрывающего тега
+    ///     Поиск закрывающего индекса закрывающего тега
     /// </summary>
     /// <param name="startIndex">Индекс первого токена после конца открывающей цепочки токенов</param>
     /// <returns>Индекс первого токена в закрывающей цепочке</returns>
-    internal static int FindClosing(this List<MdToken> tokens, int startIndex, int patternLen, TokenType tokenType)
+    public static int FindClosing(this List<MdToken> tokens, int startIndex, int patternLen, TokenType tokenType)
     {
         ArgumentNullException.ThrowIfNull(tokens);
         if (startIndex < 0 || startIndex >= tokens.Count) return -1;
-        
+
         if (patternLen <= 0) return -1;
 
         var maxStart = tokens.Count - patternLen;

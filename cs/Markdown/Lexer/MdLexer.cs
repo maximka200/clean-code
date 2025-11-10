@@ -4,7 +4,7 @@ using Markdown.Domains;
 namespace Markdown.Lexer;
 
 /// <summary>
-/// Разбивает текст на Md токены
+///     Разбивает текст на Md токены
 /// </summary>
 public static class MdLexer
 {
@@ -21,7 +21,7 @@ public static class MdLexer
             {
                 case TokenType.Word or TokenType.Number:
                     var (value, nextIndex) = CollectFullValue(text, i,
-                        tokenType is TokenType.Word ? char.IsLetter : char.IsNumber
+                        tokenType is TokenType.Word ? IsLetterOrDotСomma : char.IsNumber
                     );
                     tokens.Add(new MdToken(tokenType, value));
                     i = nextIndex;
@@ -51,10 +51,11 @@ public static class MdLexer
         return (value.ToString(), i - 1);
     }
 
-    public static TokenType GetTokenType(char text) =>
-        text switch
+    public static TokenType GetTokenType(char text)
+    {
+        return text switch
         {
-            _ when char.IsLetter(text) => TokenType.Word,
+            _ when IsLetterOrDotСomma(text) => TokenType.Word,
             _ when char.IsNumber(text) => TokenType.Number,
             '#' => TokenType.Grid,
             '*' => TokenType.Asterisk,
@@ -62,6 +63,16 @@ public static class MdLexer
             ' ' or '\u00a0' or '\u200b' => TokenType.Space,
             '\n' or '\r' => TokenType.Escape,
             '\\' => TokenType.Slash,
+            '[' => TokenType.LeftSquareBracket,
+            ']' => TokenType.RightSquareBracket,
+            '(' => TokenType.LeftParenthesis,
+            ')' => TokenType.RightParenthesis,
             _ => throw new ArgumentOutOfRangeException($"Unknown token type: {text}")
         };
+    }
+
+    private static bool IsLetterOrDotСomma(this char ch)
+    {
+        return char.IsLetter(ch) || ch == '.' || ch == ',';
+    }
 }

@@ -52,7 +52,7 @@ public class Tests
                 new(TokenType.Underscore, "_"),
                 new(TokenType.Word, "ST")
             }
-        ).SetName("WithWordAndNumber");
+        ).SetName("WithWordAndUnderscoreInside");
 
         yield return new TestCaseData(
             "_Test_ #Text 123",
@@ -68,6 +68,19 @@ public class Tests
                 new(TokenType.Number, "123")
             }
         ).SetName("WithAllTokens");
+
+        yield return new TestCaseData(
+            "[text](example.com)",
+            new List<MdToken>
+            {
+                new(TokenType.LeftSquareBracket, "["),
+                new(TokenType.Word, "text"),
+                new(TokenType.RightSquareBracket, "]"),
+                new(TokenType.LeftParenthesis, "("),
+                new(TokenType.Word, "example.com"),
+                new(TokenType.RightParenthesis, ")")
+            }
+        ).SetName("WithSquareBracketAndParenthesis");
     }
 
     [Test]

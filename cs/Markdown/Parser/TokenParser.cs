@@ -4,7 +4,7 @@ using Markdown.Domains.NodeExtensions;
 namespace Markdown.Parser;
 
 /// <summary>
-/// Парсит лист токенов в синтаксическое дерево 
+///     Парсит лист токенов в синтаксическое дерево
 /// </summary>
 public static class TokenParser
 {
@@ -34,12 +34,19 @@ public static class TokenParser
                 case TokenType.Underscore:
                     HandleUnderscore(tokens, ref i, rootChildren, context);
                     continue;
-
+                
+                case TokenType.LeftSquareBracket:
+                    HandleLeftSquareBracket(tokens, ref i, rootChildren, context);
+                    continue;
+                
+                case TokenType.LeftParenthesis:
+                case TokenType.RightParenthesis:
                 case TokenType.Asterisk:
                 // TODO: handle asterisk
                 case TokenType.Word:
                 case TokenType.Number:
                 case TokenType.Space:
+                case TokenType.RightSquareBracket:
                 default:
                     HandleText(token, rootChildren, ref i);
                     continue;
@@ -109,6 +116,50 @@ public static class TokenParser
         rootChildren.Add(new TextNode(token.Value));
         i++;
     }
+
+    private static void HandleLeftSquareBracket(List<MdToken> tokens, ref int i, List<Node> rootChildren, NodeContext context)
+    {
+        var squareBracketsLength = tokens.GetLengthChainOfTokenType(ref i, TokenType.LeftSquareBracket);
+        i -= squareBracketsLength;
+        var closeIndexMeaningText = tokens.FindClosing(i, squareBracketsLength, TokenType.RightSquareBracket);
+        if (closeIndexMeaningText == -1)
+        {
+            rootChildren.AddSymbol("[", 1);
+            i++;
+            return;
+        }
+
+        var nextIsLeftParen = closeIndexMeaningText < tokens.Count - 1 &&
+                              tokens[closeIndexMeaningText + 1].Type == TokenType.LeftParenthesis;
+
+        if (nextIsLeftParen && closeIndexMeaningText + 2 < tokens.Count)
+        {
+            var closeIndexLinkText = tokens.FindClosing(closeIndexMeaningText + 2, 1, TokenType.RightParenthesis);
+            if (closeIndexLinkText != -1)
+            {
+                var meaningTokens = tokens.GetRange(i + 1, closeIndexMeaningText - (i + 1));
+                var linkTokens = tokens.GetRange(closeIndexMeaningText + 2, closeIndexLinkText - (closeIndexMeaningText + 2));
+
+                var meaningText = Parse(meaningTokens, context).Children;
+                var linkText = Parse(linkTokens, context).Children;
+
+                var linkNode = new LinkNode(LinkNodeType.LinkRoot, new List<Node>
+                {
+                    new LinkNode(LinkNodeType.MeaningText, meaningText),
+                    new LinkNode(LinkNodeType.LinkText, linkText),
+                });
+
+                rootChildren.Add(linkNode);
+                i = closeIndexLinkText + 1;
+                return;
+            }
+        }
+
+        // если невалидная ссылка
+        rootChildren.AddSymbol("[", 1);
+        i++;
+    }
+
 
     private static int HandleNonFormattingUnderscore(
         List<MdToken> tokens,

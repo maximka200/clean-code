@@ -11,7 +11,7 @@ public class Markdown
         var tokens = MdLexer.Tokenize(text);
         var parseTree = TokenParser.Parse(tokens);
         var html = HtmlGenerator.Generate(parseTree);
-        
+
         return html;
     }
 }

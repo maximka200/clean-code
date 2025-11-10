@@ -9,5 +9,9 @@ public enum TokenType
     Grid,
     Asterisk,
     Escape,
-    Slash
+    Slash,
+    LeftSquareBracket, // [
+    RightSquareBracket, // ]
+    LeftParenthesis, // (
+    RightParenthesis // )
 }

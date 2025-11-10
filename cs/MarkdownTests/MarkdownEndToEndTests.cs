@@ -14,6 +14,9 @@ public class MarkdownEndToEndTests
     [TestCase("Text with _underscores_ inside", "Text with <em>underscores</em> inside")]
     [TestCase("__Bold__ _Italic_ __Mixed__", "<strong>Bold</strong> <em>Italic</em> <strong>Mixed</strong>")]
     [TestCase(@"Escaped \_underscore\_", "Escaped _underscore_")]
+    [TestCase("[text](example.com)", "<a href=\"example.com\">text</a>")]
+    [TestCase("Before [text](example.com) after", "Before <a href=\"example.com\">text</a> after")]
+    [TestCase("Nested __[bold](link.com)__", "Nested <strong><a href=\"link.com\">bold</a></strong>")]
     public void Should_ConvertMarkdownToHtml_Correctly(string markdown, string expectedHtml)
     {
         var tokens = MdLexer.Tokenize(markdown);

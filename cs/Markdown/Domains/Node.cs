@@ -9,7 +9,6 @@ public class Node(NodeType type, List<Node>? children = null)
     {
         return nodeType switch
         {
-            NodeType.Bold => NodeContext.Bold,
             NodeType.Italic => NodeContext.Italic,
             _ => NodeContext.None
         };

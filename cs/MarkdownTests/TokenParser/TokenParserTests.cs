@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Markdown.Domains;
 using Markdown.Domains.NodeExtensions;
+
 // ReSharper disable UseCollectionExpression
 
 namespace MarkdownTest.TokenParser;
@@ -19,7 +20,7 @@ public class TokenParserTests
             },
             new Node(NodeType.Root, new List<Node>
             {
-                new HeaderNode(1,new List<Node>
+                new HeaderNode(1, new List<Node>
                 {
                     new TextNode("Test")
                 })
@@ -183,6 +184,76 @@ public class TokenParserTests
                 })
             })
         ).SetName("WithDifferentTags");
+
+        yield return new TestCaseData(
+            new List<MdToken>
+            {
+                new(TokenType.LeftSquareBracket, "["),
+                new(TokenType.Word, "text"),
+                new(TokenType.RightSquareBracket, "]"),
+                new(TokenType.LeftParenthesis, "("),
+                new(TokenType.Word, "example.com"),
+                new(TokenType.RightParenthesis, ")")
+            },
+            new Node(NodeType.Root, new List<Node>
+            {
+                new LinkNode(LinkNodeType.LinkRoot,
+                    new List<Node>
+                    {
+                        new LinkNode(LinkNodeType.MeaningText,
+                            new List<Node>
+                            {
+                                new TextNode("text")
+                            }
+                        ),
+                        new LinkNode(LinkNodeType.LinkText,
+                            new List<Node>
+                            {
+                                new TextNode("example.com")
+                            }
+                        )
+                    }
+                )
+            })
+        ).SetName("WithLink");
+
+        yield return new TestCaseData(
+            new List<MdToken>
+            {
+                new(TokenType.LeftSquareBracket, "["),
+                new(TokenType.Word, "text"),
+                new(TokenType.LeftParenthesis, "("),
+                new(TokenType.Word, "example.com"),
+                new(TokenType.RightParenthesis, ")")
+            },
+            new Node(NodeType.Root, new List<Node>
+            {
+                new TextNode("["),
+                new TextNode("text"),
+                new TextNode("("),
+                new TextNode("example.com"),
+                new TextNode(")")
+            })
+        ).SetName("WithLinkUnclosedSquareBracket");
+
+        yield return new TestCaseData(
+            new List<MdToken>
+            {
+                new(TokenType.LeftSquareBracket, "["),
+                new(TokenType.Word, "text"),
+                new(TokenType.LeftParenthesis, "]"),
+                new(TokenType.Word, "example.com"),
+                new(TokenType.RightParenthesis, ")")
+            },
+            new Node(NodeType.Root, new List<Node>
+            {
+                new TextNode("["),
+                new TextNode("text"),
+                new TextNode("]"),
+                new TextNode("example.com"),
+                new TextNode(")")
+            })
+        ).SetName("WithLinkUnclosedParenthesisBracket");
     }
 
     private static IEnumerable<TestCaseData> TokenParserCases_Extreme()
