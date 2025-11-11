@@ -34,15 +34,14 @@ public static class TokenParser
                 case TokenType.Underscore:
                     HandleUnderscore(tokens, ref i, rootChildren, context);
                     continue;
-                
+
                 case TokenType.LeftSquareBracket:
                     HandleLeftSquareBracket(tokens, ref i, rootChildren, context);
                     continue;
-                
+
                 case TokenType.LeftParenthesis:
                 case TokenType.RightParenthesis:
                 case TokenType.Asterisk:
-                // TODO: handle asterisk
                 case TokenType.Word:
                 case TokenType.Number:
                 case TokenType.Space:
@@ -90,8 +89,10 @@ public static class TokenParser
 
     private static void HandleUnderscore(List<MdToken> tokens, ref int i, List<Node> rootChildren, NodeContext context)
     {
-        var underscoreCount = tokens.GetLengthChainOfTokenType(ref i, TokenType.Underscore);
-        var spaceCountAfter = tokens.GetLengthChainOfTokenType(ref i, TokenType.Space);
+        var underscoreCount = tokens.GetLengthChainOfTokenTypeAfter(i, TokenType.Underscore);
+        i += underscoreCount;
+        var spaceCountAfter = tokens.GetLengthChainOfTokenTypeAfter(i, TokenType.Space);
+        i += spaceCountAfter;
 
         if (spaceCountAfter != 0)
         {
@@ -117,10 +118,10 @@ public static class TokenParser
         i++;
     }
 
-    private static void HandleLeftSquareBracket(List<MdToken> tokens, ref int i, List<Node> rootChildren, NodeContext context)
+    private static void HandleLeftSquareBracket(List<MdToken> tokens, ref int i, List<Node> rootChildren,
+        NodeContext context)
     {
-        var squareBracketsLength = tokens.GetLengthChainOfTokenType(ref i, TokenType.LeftSquareBracket);
-        i -= squareBracketsLength;
+        var squareBracketsLength = tokens.GetLengthChainOfTokenTypeAfter(i, TokenType.LeftSquareBracket);
         var closeIndexMeaningText = tokens.FindClosing(i, squareBracketsLength, TokenType.RightSquareBracket);
         if (closeIndexMeaningText == -1)
         {
@@ -138,7 +139,8 @@ public static class TokenParser
             if (closeIndexLinkText != -1)
             {
                 var meaningTokens = tokens.GetRange(i + 1, closeIndexMeaningText - (i + 1));
-                var linkTokens = tokens.GetRange(closeIndexMeaningText + 2, closeIndexLinkText - (closeIndexMeaningText + 2));
+                var linkTokens = tokens.GetRange(closeIndexMeaningText + 2,
+                    closeIndexLinkText - (closeIndexMeaningText + 2));
 
                 var meaningText = Parse(meaningTokens, context).Children;
                 var linkText = Parse(linkTokens, context).Children;
@@ -193,7 +195,7 @@ public static class TokenParser
 
         if (closeIndex != -1)
         {
-            var spaceCountBefore = tokens.HasSpaceBefore(closeIndex);
+            var spaceCountBefore = tokens.GetLengthChainOfTokenTypesBefore(closeIndex, TokenType.Space);
 
             // проверка на пробелы до
             if (spaceCountBefore > 0)

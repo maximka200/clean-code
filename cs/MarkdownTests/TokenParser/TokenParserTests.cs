@@ -9,7 +9,7 @@ namespace MarkdownTest.TokenParser;
 [TestFixture]
 public class TokenParserTests
 {
-    public static IEnumerable<TestCaseData> TokenParserCases_Default()
+    private static IEnumerable<TestCaseData> TokenParserCases_Default()
     {
         yield return new TestCaseData(
             new List<MdToken>

@@ -19,9 +19,7 @@ public class MarkdownPerformanceTests
             var markdown = GenerateRandomMarkdown(length);
             sw.Start();
 
-            var tokens = Markdown.Lexer.MdLexer.Tokenize(markdown);
-            var ast = Markdown.Parser.TokenParser.Parse(tokens);
-            _ = Markdown.Generator.HtmlGenerator.Generate(ast);
+            Markdown.Markdown.Render(markdown);
 
             sw.Stop();
             timeSpans.Add(sw.Elapsed);

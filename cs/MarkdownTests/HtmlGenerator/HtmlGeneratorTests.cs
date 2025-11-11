@@ -1,13 +1,14 @@
 ﻿using FluentAssertions;
 using Markdown.Domains;
 using Markdown.Domains.NodeExtensions;
+
 // ReSharper disable UseCollectionExpression
 
 namespace MarkdownTest.HtmlGenerator;
 
 public class HtmlGeneratorTests
 {
-    public static IEnumerable<TestCaseData> HtmlGeneratorTestCases()
+    private static IEnumerable<TestCaseData> HtmlGeneratorTestCases()
     {
         yield return new TestCaseData(
             new Node(NodeType.Root,

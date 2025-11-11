@@ -6,12 +6,12 @@ public class HeaderNode : Node
 
     public int Level { get; }
 
-    public HeaderNode(int level = 1, List<Node>? children = null) 
+    public HeaderNode(int level = 1, List<Node>? children = null)
         : base(NodeType.Header, children)
     {
         if (level is < 1 or > MaxHeaderLevel)
             throw new ArgumentOutOfRangeException(
-                nameof(level), 
+                nameof(level),
                 $"Header level must be between 1 and {MaxHeaderLevel}."
             );
 

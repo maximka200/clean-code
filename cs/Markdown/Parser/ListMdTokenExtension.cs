@@ -7,64 +7,6 @@ namespace Markdown.Parser;
 
 public static class ListMdTokenExtension
 {
-    internal static int HasSpaceBefore(this List<MdToken> tokens, int index)
-    {
-        var spaceCount = 0;
-        while (tokens[index - 1].Type == TokenType.Space)
-        {
-            spaceCount++;
-            index--;
-        }
-
-        return spaceCount;
-    }
-
-    private static bool ContainsTokenType(this List<MdToken> tokens, TokenType tokenType)
-    {
-        return tokens.Any(token => token.Type == tokenType);
-    }
-
-    /// <summary>
-    ///     Проверка на то, что под__черкивания в раз__ных словах, _разных сл_овах, раз_ных словах_
-    /// </summary>
-    public static bool IsUnderscoreInDifferentWord(this List<MdToken> tokens, int startIndex, int closeIndex,
-        int underscoreCount)
-    {
-        ArgumentOutOfRangeException.ThrowIfLessThan(closeIndex, startIndex);
-
-        var nextTokenInd = closeIndex + underscoreCount;
-        if (nextTokenInd > tokens.Count)
-            return false;
-
-        var range = tokens.GetRange(startIndex, closeIndex - startIndex);
-        var hasSeparator = range.ContainsTokenType(TokenType.Space) || range.ContainsTokenType(TokenType.Escape);
-
-        var prevIsWord = startIndex > 0 && tokens[startIndex - 1].Type == TokenType.Word;
-        var nextIsWord = nextTokenInd < tokens.Count && tokens[nextTokenInd].Type == TokenType.Word;
-
-        return hasSeparator && (prevIsWord || nextIsWord);
-    }
-
-    public static bool IsUnderscoreInWordWithNumbers(this List<MdToken> tokens, int startIndex, int closeIndex,
-        int underscoreCount)
-    {
-        ArgumentOutOfRangeException.ThrowIfLessThan(closeIndex, startIndex);
-
-        var range = tokens.GetRange(startIndex + underscoreCount, closeIndex - startIndex);
-
-        var hasNumber = range.ContainsTokenType(TokenType.Number);
-
-        var prevIsWord = startIndex > 0 && tokens[startIndex - 1].Type == TokenType.Word;
-
-        return hasNumber && prevIsWord;
-    }
-
-    internal static void AddSymbol(this List<Node> root, string symbol, int count)
-    {
-        for (var _ = 0; _ < count; _++)
-            root.Add(new TextNode(symbol));
-    }
-    
     /// <summary>
     ///     Поиск закрывающего индекса закрывающего тега
     /// </summary>
@@ -104,7 +46,60 @@ public static class ListMdTokenExtension
         return -1;
     }
 
-    internal static int GetLengthChainOfTokenType(this List<MdToken> tokens, ref int startIndex, TokenType tokenType)
+    /// <summary>
+    ///     Проверка на то, что под__черкивания в раз__ных словах, _разных сл_овах, раз_ных словах_
+    /// </summary>
+    public static bool IsUnderscoreInDifferentWord(this List<MdToken> tokens, int startIndex, int closeIndex,
+        int underscoreCount)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(closeIndex, startIndex);
+
+        var nextTokenInd = closeIndex + underscoreCount;
+        if (nextTokenInd > tokens.Count)
+            return false;
+
+        var range = tokens.GetRange(startIndex, closeIndex - startIndex);
+        var hasSeparator = range.ContainsTokenType(TokenType.Space) || range.ContainsTokenType(TokenType.Escape);
+
+        var prevIsWord = startIndex > 0 && tokens[startIndex - 1].Type == TokenType.Word;
+        var nextIsWord = nextTokenInd < tokens.Count && tokens[nextTokenInd].Type == TokenType.Word;
+
+        return hasSeparator && (prevIsWord || nextIsWord);
+    }
+
+    public static bool IsUnderscoreInWordWithNumbers(this List<MdToken> tokens, int startIndex, int closeIndex,
+        int underscoreCount)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(closeIndex, startIndex);
+
+        var range = tokens.GetRange(startIndex + underscoreCount, closeIndex - startIndex);
+
+        var hasNumber = range.ContainsTokenType(TokenType.Number);
+
+        var prevIsWord = startIndex > 0 && tokens[startIndex - 1].Type == TokenType.Word;
+
+        return hasNumber && prevIsWord;
+    }
+    
+    internal static int GetLengthChainOfTokenTypesBefore(this List<MdToken> tokens, int index, TokenType tokenType)
+    {
+        var tokenChainLength = 0;
+        while (index - 1 >= 0 && tokens[index - 1].Type == tokenType)
+        {
+            tokenChainLength++;
+            index--;
+        }
+
+        return tokenChainLength;
+    }
+
+    internal static void AddSymbol(this List<Node> root, string symbol, int count)
+    {
+        for (var _ = 0; _ < count; _++)
+            root.Add(new TextNode(symbol));
+    }
+
+    internal static int GetLengthChainOfTokenTypeAfter(this List<MdToken> tokens, int startIndex, TokenType tokenType)
     {
         var tokenChainLength = 0;
         while (startIndex < tokens.Count && tokens[startIndex].Type == tokenType)
@@ -119,5 +114,10 @@ public static class ListMdTokenExtension
     internal static bool HaveNotPairedUnderscore(this List<MdToken> tokens)
     {
         return tokens.Count(token => token.Type == TokenType.Underscore) % 2 == 1;
+    }
+    
+    private static bool ContainsTokenType(this List<MdToken> tokens, TokenType tokenType)
+    {
+        return tokens.Any(token => token.Type == tokenType);
     }
 }

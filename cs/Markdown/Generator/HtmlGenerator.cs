@@ -4,7 +4,7 @@ using Markdown.Domains.NodeExtensions;
 namespace Markdown.Generator;
 
 /// <summary>
-/// Генерирует html текст из Node
+///     Генерирует html текст из Node
 /// </summary>
 public static class HtmlGenerator
 {

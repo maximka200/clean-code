@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using Markdown.Lexer;
 
 namespace MarkdownTest;
 
@@ -19,9 +18,7 @@ public class MarkdownEndToEndTests
     [TestCase("Nested __[bold](link.com)__", "Nested <strong><a href=\"link.com\">bold</a></strong>")]
     public void Should_ConvertMarkdownToHtml_Correctly(string markdown, string expectedHtml)
     {
-        var tokens = MdLexer.Tokenize(markdown);
-        var ast = Markdown.Parser.TokenParser.Parse(tokens);
-        var html = Markdown.Generator.HtmlGenerator.Generate(ast);
+        var html = Markdown.Markdown.Render(markdown);
 
         html.Should().Be(expectedHtml);
     }
