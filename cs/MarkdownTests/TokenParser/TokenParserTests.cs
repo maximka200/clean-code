@@ -216,6 +216,94 @@ public class TokenParserTests
                 )
             })
         ).SetName("WithLink");
+        
+        yield return new TestCaseData(
+            new List<MdToken>
+            {
+                new(TokenType.LeftSquareBracket, "["),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Word, "text"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.RightSquareBracket, "]"),
+                new(TokenType.LeftParenthesis, "("),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Word, "example.com"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.RightParenthesis, ")")
+            },
+            new Node(NodeType.Root, new List<Node>
+            {
+                new LinkNode(LinkNodeType.LinkRoot,
+                    new List<Node>
+                    {
+                        new LinkNode(LinkNodeType.MeaningText,
+                            new List<Node>
+                            {
+                                new(NodeType.Italic, new List<Node>
+                                    {
+                                        new TextNode("text")
+                                    })
+                            }
+                        ),
+                        new LinkNode(LinkNodeType.LinkText,
+                            new List<Node>
+                            {
+                                new(NodeType.Italic, new List<Node>
+                                {
+                                    new TextNode("example.com")
+                                })
+                            }
+                        )
+                    }
+                )
+            })
+        ).SetName("WithLinkItalicText");
+        
+        yield return new TestCaseData(
+            new List<MdToken>
+            {
+                new(TokenType.LeftSquareBracket, "["),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Word, "text"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.RightSquareBracket, "]"),
+                new(TokenType.LeftParenthesis, "("),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Word, "example.com"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.RightParenthesis, ")")
+            },
+            new Node(NodeType.Root, new List<Node>
+            {
+                new LinkNode(LinkNodeType.LinkRoot,
+                    new List<Node>
+                    {
+                        new LinkNode(LinkNodeType.MeaningText,
+                            new List<Node>
+                            {
+                                new(NodeType.Bold, new List<Node>
+                                {
+                                    new TextNode("text")
+                                })
+                            }
+                        ),
+                        new LinkNode(LinkNodeType.LinkText,
+                            new List<Node>
+                            {
+                                new(NodeType.Bold, new List<Node>
+                                {
+                                    new TextNode("example.com")
+                                })
+                            }
+                        )
+                    }
+                )
+            })
+        ).SetName("WithLinkItalicText");
 
         yield return new TestCaseData(
             new List<MdToken>
