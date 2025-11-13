@@ -170,7 +170,6 @@ public class TokenParserTests
                     new TextNode("Header"),
                     new TextNode(" "),
                     new TextNode("##"),
-                    new TextNode(" ")
                 }),
                 new(NodeType.NewLine),
                 new(NodeType.Bold, new List<Node>

@@ -11,8 +11,8 @@ public enum TokenType
     Escape,
     Slash,
     Tab,
-    LeftSquareBracket, 
-    RightSquareBracket, 
-    LeftParenthesis, 
+    LeftSquareBracket,
+    RightSquareBracket,
+    LeftParenthesis,
     RightParenthesis
 }

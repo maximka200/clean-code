@@ -73,7 +73,7 @@ public static class MdLexer
     {
         if (TokenMap.TryGetValue(text, out var tokenType))
             return tokenType;
-        
+
         return char.IsNumber(text) ? TokenType.Number : TokenType.Word;
     }
 

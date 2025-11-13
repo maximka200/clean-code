@@ -92,12 +92,12 @@ public static class ListMdTokenExtension
         ArgumentOutOfRangeException.ThrowIfLessThan(closeIndex, startIndex);
 
         var hasNumber = tokens.GetRange(startIndex + 1, closeIndex - startIndex).ContainsTokenType(TokenType.Number);
-        var prevIsWord = startIndex > 0 && startIndex - underscoreCount >= 0 
+        var prevIsWord = startIndex > 0 && startIndex - underscoreCount >= 0
                                         && tokens[startIndex - underscoreCount].Type == TokenType.Word;
 
         return hasNumber && prevIsWord;
     }
-    
+
     internal static int GetTokensCountBefore(this List<MdToken> tokens, int index, TokenType tokenType)
     {
         var tokenChainLength = 0;
@@ -132,12 +132,12 @@ public static class ListMdTokenExtension
     {
         return tokens.Count(token => token.Type == TokenType.Underscore) % 2 == 1;
     }
-    
+
     private static bool ContainsTokenType(this List<MdToken> tokens, TokenType tokenType)
     {
         return tokens.Any(token => token.Type == tokenType);
     }
-    
+
     private static bool CheckMatch(List<MdToken> tokens, int startIndex, int patternLen, TokenType tokenType)
     {
         for (var k = 0; k < patternLen; k++)

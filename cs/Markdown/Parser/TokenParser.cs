@@ -68,8 +68,9 @@ public class TokenParser(List<MdToken> tokens, int position = 0)
     {
         var level = GetCountHeaderLevel();
 
-        if (position < tokens.Count && TokenIsTokenType(position, TokenType.Space) 
-                                    && level <= HeaderNode.MaxHeaderLevel)
+        if (position < tokens.Count && IsTokenType(tokens, position, TokenType.Space) 
+                                    && level <= HeaderNode.MaxHeaderLevel && IsAtStartOfLine(tokens, position - level)
+            )
             ParseHeaderContent(level, rootChildren);
         else
             rootChildren.Add(new TextNode(new string('#', level)));
@@ -146,12 +147,12 @@ public class TokenParser(List<MdToken> tokens, int position = 0)
         var bracketsLength = tokens.GetTokensCountAfter(position, TokenType.LeftSquareBracket);
         var closeIndexMeaningText = tokens.FindClosing(position, bracketsLength, TokenType.RightSquareBracket);
 
-        if (closeIndexMeaningText == -1 || TokenIsTokenType(closeIndexMeaningText - 1, TokenType.Slash)
+        if (closeIndexMeaningText == -1 || IsTokenType(tokens, closeIndexMeaningText - 1, TokenType.Slash)
             || !IsValidLinkSyntax(closeIndexMeaningText))
             return null;
 
         var closeIndexLinkText = tokens.FindClosing(closeIndexMeaningText + 2, 1, TokenType.RightParenthesis);
-        if (closeIndexLinkText == -1 || TokenIsTokenType(closeIndexLinkText - 1, TokenType.Slash))
+        if (closeIndexLinkText == -1 || IsTokenType(tokens, closeIndexLinkText - 1, TokenType.Slash))
             return null;
 
         var linkNode = BuildLinkNode(
@@ -188,7 +189,7 @@ public class TokenParser(List<MdToken> tokens, int position = 0)
     {
         var closeIndex = tokens.FindClosing(position, underscoreCount, TokenType.Underscore);
 
-        if (closeIndex == -1 || TokenIsTokenType(closeIndex - 1, TokenType.Slash)) 
+        if (closeIndex == -1 || IsTokenType(tokens,closeIndex - 1, TokenType.Slash)) 
         {
             rootChildren.AddSymbol("_", underscoreCount);
             return 0;
@@ -253,15 +254,14 @@ public class TokenParser(List<MdToken> tokens, int position = 0)
     {
         var spaceCount = tokens.GetTokensCountAfter(position, TokenType.Space);
         Move(spaceCount);
-
-        var contentNodes = new List<Node>();
-        while (position < tokens.Count && tokens[position].Type != TokenType.Escape)
-        {
-            contentNodes.Add(new TextNode(tokens[position].Value));
-            Move();
-        }
-
-        rootChildren.Add(new HeaderNode(level, contentNodes));
+        
+        var countUntilEndOfLine = CountTokensUntilEndOfLine();
+        var innerTokens = tokens.GetRange(position, countUntilEndOfLine);
+        Move(countUntilEndOfLine);
+        
+        var innerBlock = InitializeWith(innerTokens).Parse().Children;
+        
+        rootChildren.Add(new HeaderNode(level, innerBlock));
     }
 
     private void Move(int shift = 1)
@@ -289,9 +289,28 @@ public class TokenParser(List<MdToken> tokens, int position = 0)
     {
         return closeIndexMeaningText + 2 < tokens.Count;
     }
-
-    private bool TokenIsTokenType(int index, TokenType type)
+    
+    private int CountTokensUntilEndOfLine()
     {
-        return tokens[index].Type == type;
+        var count = 0;
+        var currentPosition = position;
+
+        while (currentPosition < tokens.Count && !IsTokenType(tokens, currentPosition, TokenType.Escape))
+        {
+            count++;
+            currentPosition++;
+        }
+
+        return count;
+    }
+    
+    private static bool IsTokenType(List<MdToken> tokenList, int index, TokenType type)
+    {
+        return tokenList[index].Type == type;
+    }
+
+    private static bool IsAtStartOfLine(List<MdToken> tokens, int position)
+    {
+        return position == 0 || IsTokenType(tokens,position - 1, TokenType.Escape);
     }
 }

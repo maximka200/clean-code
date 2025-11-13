@@ -19,7 +19,7 @@ public class HeaderNode : Node
 
         Level = level;
     }
-    
+
     public override void ToHtml(StringBuilder sb)
     {
         sb.Append($"<h{Level}>");
@@ -27,6 +27,7 @@ public class HeaderNode : Node
         {
             child.ToHtml(sb);
         }
+
         sb.Append($"</h{Level}>");
     }
 }
