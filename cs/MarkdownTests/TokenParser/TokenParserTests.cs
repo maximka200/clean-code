@@ -678,7 +678,9 @@ public class TokenParserTests
     [TestCaseSource(nameof(TokenParserCases_Extreme))]
     public void Parse_ShouldParse_Correctly(List<MdToken> tokens, Node expectedNode)
     {
-        var result = Markdown.Parser.TokenParser.Parse(tokens);
+        var parser = new Markdown.Parser.TokenParser(tokens);
+
+        var result = parser.Parse();
 
         result.Should().BeEquivalentTo(expectedNode);
     }

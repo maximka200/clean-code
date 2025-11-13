@@ -9,7 +9,10 @@ public static class Markdown
     public static string Render(string text)
     {
         var tokens = MdLexer.Tokenize(text);
-        var parseTree = TokenParser.Parse(tokens);
+
+        var parser = new TokenParser(tokens);
+
+        var parseTree = parser.Parse(); // получаем дерево нод
         var html = HtmlGenerator.Generate(parseTree);
 
         return html;

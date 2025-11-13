@@ -6,37 +6,45 @@ namespace Markdown.Parser;
 /// <summary>
 ///     Парсит лист токенов в синтаксическое дерево
 /// </summary>
-public static class TokenParser
+public class TokenParser(List<MdToken> tokens, int position = 0)
 {
-    public static Node Parse(List<MdToken> tokens, NodeContext context = NodeContext.None)
+    private int position = position;
+
+    private static TokenParser InitializeWith(List<MdToken> inputTokens)
+    {
+        var newTokenParser = new TokenParser(inputTokens);
+
+        return newTokenParser;
+    }
+
+    public Node Parse(NodeContext context = NodeContext.None)
     {
         var rootChildren = new List<Node>();
-        var i = 0;
 
-        while (i < tokens.Count)
+        while (position < tokens.Count)
         {
-            var token = tokens[i];
+            var token = tokens[position];
 
             switch (token.Type)
             {
                 case TokenType.Grid:
-                    HandleHeader(tokens, ref i, rootChildren);
+                    HandleHeader(rootChildren);
                     continue;
 
                 case TokenType.Escape:
-                    HandleNewLine(rootChildren, ref i);
+                    HandleNewLine(rootChildren);
                     continue;
 
                 case TokenType.Slash:
-                    HandleEscapedCharacter(tokens, ref i, rootChildren);
+                    HandleEscapedCharacter(rootChildren);
                     continue;
 
                 case TokenType.Underscore:
-                    HandleUnderscore(tokens, ref i, rootChildren, context);
+                    HandleUnderscore(rootChildren, context);
                     continue;
 
                 case TokenType.LeftSquareBracket:
-                    HandleLeftSquareBracket(tokens, ref i, rootChildren, context);
+                    HandleLeftSquareBracket(rootChildren, context);
                     continue;
 
                 case TokenType.LeftParenthesis:
@@ -47,7 +55,7 @@ public static class TokenParser
                 case TokenType.Space:
                 case TokenType.RightSquareBracket:
                 default:
-                    HandleText(token, rootChildren, ref i);
+                    HandleText(token, rootChildren);
                     continue;
             }
         }
@@ -55,44 +63,43 @@ public static class TokenParser
         return new Node(NodeType.Root, rootChildren);
     }
 
-    private static void HandleHeader(List<MdToken> tokens, ref int i, List<Node> rootChildren)
+    private void HandleHeader(List<Node> rootChildren)
     {
-        var level = CountHeaderLevel(tokens, ref i);
+        var level = GetCountHeaderLevel();
 
-        if (i < tokens.Count && tokens[i].Type == TokenType.Space)
-            ParseHeaderContent(tokens, ref i, level, rootChildren);
+        if (position < tokens.Count && tokens[position].Type == TokenType.Space)
+            ParseHeaderContent(level, rootChildren);
         else
             rootChildren.Add(new TextNode(new string('#', level)));
     }
 
-    private static void HandleNewLine(List<Node> rootChildren, ref int i)
+    private void HandleNewLine(List<Node> rootChildren)
     {
         rootChildren.Add(new Node(NodeType.NewLine));
-        i++;
+        Move();
     }
 
-    private static void HandleEscapedCharacter(List<MdToken> tokens, ref int i, List<Node> rootChildren)
+    private void HandleEscapedCharacter(List<Node> rootChildren)
     {
-        if (i + 1 < tokens.Count)
+        if (position + 1 < tokens.Count)
         {
-            var next = tokens[i + 1];
+            var next = tokens[position + 1];
             rootChildren.Add(new TextNode(next.Value));
-            i += 2;
+            Move(2);
         }
         else
         {
             rootChildren.Add(new TextNode("\\"));
-            i++;
+            Move();
         }
     }
 
-
-    private static void HandleUnderscore(List<MdToken> tokens, ref int i, List<Node> rootChildren, NodeContext context)
+    private void HandleUnderscore(List<Node> rootChildren, NodeContext context)
     {
-        var underscoreCount = tokens.GetTokensCountAfter(i, TokenType.Underscore);
-        i += underscoreCount;
-        var spaceCountAfter = tokens.GetTokensCountAfter(i, TokenType.Space);
-        i += spaceCountAfter;
+        var underscoreCount = tokens.GetTokensCountAfter(position, TokenType.Underscore);
+        Move(underscoreCount);
+        var spaceCountAfter = tokens.GetTokensCountAfter(position, TokenType.Space);
+        Move(spaceCountAfter);
 
         if (spaceCountAfter != 0)
         {
@@ -100,98 +107,86 @@ public static class TokenParser
             rootChildren.AddSymbol(" ", spaceCountAfter);
             return;
         }
-
-        switch (underscoreCount)
+        
+        if (underscoreCount is 1 or 2)
         {
-            case 1 or 2:
-                i += tokens.HandleUnderscoresAndReturnShift(i, underscoreCount, rootChildren, context);
-                break;
-            default:
-                rootChildren.AddSymbol("_", underscoreCount);
-                break;
+            position += HandleUnderscoresAndReturnShift(underscoreCount, rootChildren, context);
+        }
+        else
+        {
+            rootChildren.AddSymbol("_", underscoreCount);
         }
     }
 
-    private static void HandleText(MdToken token, List<Node> rootChildren, ref int i)
+    private void HandleText(MdToken token, List<Node> rootChildren)
     {
         rootChildren.Add(new TextNode(token.Value));
-        i++;
+        Move();
     }
 
-    private static void HandleLeftSquareBracket(List<MdToken> tokens, ref int i, List<Node> rootChildren,
-        NodeContext context)
+    private void HandleLeftSquareBracket(List<Node> rootChildren, NodeContext context)
     {
-        var squareBracketsLength = tokens.GetTokensCountAfter(i, TokenType.LeftSquareBracket);
-        var closeIndexMeaningText = tokens.FindClosing(i, squareBracketsLength, TokenType.RightSquareBracket);
-        if (closeIndexMeaningText == -1)
+        var linkNode = TryParseLink(context);
+
+        if (linkNode != null)
+        {
+            rootChildren.Add(linkNode);
+        }
+        else
         {
             rootChildren.AddSymbol("[", 1);
-            i++;
-            return;
+            Move();
         }
-
-        var nextIsLeftParen = closeIndexMeaningText < tokens.Count - 1 &&
-                              tokens[closeIndexMeaningText + 1].Type == TokenType.LeftParenthesis;
-
-        if (nextIsLeftParen && closeIndexMeaningText + 2 < tokens.Count)
-        {
-            var closeIndexLinkText = tokens.FindClosing(closeIndexMeaningText + 2, 1, TokenType.RightParenthesis);
-            if (closeIndexLinkText != -1)
-            {
-                var meaningTokens = tokens.GetRange(i + 1, closeIndexMeaningText - (i + 1));
-                var linkTokens = tokens.GetRange(closeIndexMeaningText + 2,
-                    closeIndexLinkText - (closeIndexMeaningText + 2));
-
-                var meaningText = Parse(meaningTokens, context).Children;
-                var linkText = Parse(linkTokens, context).Children;
-
-                var linkNode = new LinkNode(LinkNodeType.LinkRoot, new List<Node>
-                {
-                    new LinkNode(LinkNodeType.MeaningText, meaningText),
-                    new LinkNode(LinkNodeType.LinkText, linkText),
-                });
-
-                rootChildren.Add(linkNode);
-                i = closeIndexLinkText + 1;
-                return;
-            }
-        }
-
-        // если невалидная ссылка
-        rootChildren.AddSymbol("[", 1);
-        i++;
     }
-
-
-    private static int HandleNonFormattingUnderscore(
-        List<MdToken> tokens,
-        int i,
-        int closeIndex,
-        int underscoreCount,
-        int spaceCountBefore,
-        List<Node> rootChildren,
-        NodeContext context = NodeContext.None)
+    
+    private LinkNode? TryParseLink(NodeContext context)
     {
-        var inner = Parse(tokens.GetRange(i, closeIndex - i - spaceCountBefore), context);
+        var bracketsLength = tokens.GetTokensCountAfter(position, TokenType.LeftSquareBracket);
+        var closeIndexMeaningText = tokens.FindClosing(position, bracketsLength, TokenType.RightSquareBracket);
+
+        if (closeIndexMeaningText == -1)
+            return null;
+
+        if (!IsValidLinkSyntax(closeIndexMeaningText))
+            return null;
+
+        var closeIndexLinkText = tokens.FindClosing(closeIndexMeaningText + 2, 1, TokenType.RightParenthesis);
+        if (closeIndexLinkText == -1)
+            return null;
+
+        var linkNode = BuildLinkNode(
+            meaningStart: position + 1,
+            meaningEnd: closeIndexMeaningText,
+            linkStart: closeIndexMeaningText + 2,
+            linkEnd: closeIndexLinkText,
+            context: context
+        );
+
+        Move(closeIndexLinkText + 1 - position);
+
+        return linkNode;
+    }
+    
+    private int HandleNonFormattingUnderscore(int closeIndex, int underscoreCount, int spaceCountBefore,
+        List<Node> rootChildren, NodeContext context = NodeContext.None)
+    {
+        var tokensInside = tokens.GetRange(position, closeIndex - position - spaceCountBefore);
+        var innerBlock = InitializeWith(tokensInside)
+            .Parse(context).Children;
         rootChildren.AddSymbol("_", underscoreCount);
-        rootChildren.AddRange(inner.Children);
+        rootChildren.AddRange(innerBlock);
 
         if (spaceCountBefore > 0)
             rootChildren.AddSymbol(" ", spaceCountBefore);
 
         rootChildren.AddSymbol("_", underscoreCount);
-        return closeIndex - i + underscoreCount;
+        return closeIndex - position + underscoreCount;
     }
 
-    private static int HandleUnderscoresAndReturnShift(
-        this List<MdToken> tokens,
-        int i,
-        int underscoreCount,
-        List<Node> rootChildren,
-        NodeContext context = NodeContext.None
-    )
+    private int HandleUnderscoresAndReturnShift(int underscoreCount, List<Node> rootChildren,
+        NodeContext context = NodeContext.None)
     {
-        var closeIndex = tokens.FindClosing(i, underscoreCount, TokenType.Underscore);
+        var closeIndex = tokens.FindClosing(position, underscoreCount, TokenType.Underscore);
 
         if (closeIndex == -1)
         {
@@ -201,50 +196,96 @@ public static class TokenParser
 
         var spaceCountBefore = tokens.GetTokensCountBefore(closeIndex, TokenType.Space);
 
-        // проверка на пробелы до
         if (spaceCountBefore > 0)
-            return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, spaceCountBefore, rootChildren);
+            return HandleNonFormattingUnderscore(closeIndex, underscoreCount, spaceCountBefore, rootChildren);
 
-        // проверка на _ в разных словах, _ в словах с числами
-        if (context == NodeContext.Italic
-            || tokens.IsUnderscoreInDifferentWord(i - 1, closeIndex, underscoreCount)
-            || tokens.IsUnderscoreInWordWithNumbers(i - 1, closeIndex, underscoreCount)
-            || tokens.GetRange(i, closeIndex - i).HaveNotPairedUnderscore())
-            return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, 0, rootChildren,
-                context);
+        if (ShouldHandleAsNonFormattingUnderscore(context, closeIndex, underscoreCount))
+            return HandleNonFormattingUnderscore(closeIndex, underscoreCount, 0, rootChildren, context);
+
+        var shift = CreateFormattingNode(underscoreCount, closeIndex, rootChildren);
+        return shift;
+    }
+    
+    private LinkNode BuildLinkNode(int meaningStart, int meaningEnd, int linkStart, int linkEnd, NodeContext context)
+    {
+        var meaningTokens = tokens.GetRange(meaningStart, meaningEnd - meaningStart);
+        var linkTokens = tokens.GetRange(linkStart, linkEnd - linkStart);
         
+        var meaningText = InitializeWith(meaningTokens).Parse(context).Children;
+        var linkText = InitializeWith(linkTokens).Parse(context).Children;
+        
+        var linkNode = new LinkNode(LinkNodeType.LinkRoot, [
+            new LinkNode(LinkNodeType.MeaningText, meaningText),
+            new LinkNode(LinkNodeType.LinkText, linkText)
+        ]);
+
+        return linkNode;
+    }
+    
+    private int CreateFormattingNode(int underscoreCount, int closeIndex, List<Node> rootChildren)
+    {
+        var innerTokens = tokens.GetRange(position, closeIndex - position);
         var nodeType = underscoreCount == 1 ? NodeType.Italic : NodeType.Bold;
 
-        var inner = Parse(tokens.GetRange(i, closeIndex - i), Node.GetNodeContext(nodeType));
+        var parsedInnerBlock = InitializeWith(innerTokens)
+            .Parse(Node.GetNodeContext(nodeType)).Children;
 
-        rootChildren.Add(new Node(nodeType, inner.Children));
-        return closeIndex - i + underscoreCount;
+        rootChildren.Add(new Node(nodeType, parsedInnerBlock));
+
+        var shift = closeIndex - position + underscoreCount;
+        return shift;
     }
-
-    private static int CountHeaderLevel(List<MdToken> tokens, ref int i)
+    
+    private int GetCountHeaderLevel()
     {
         var level = 0;
 
-        while (i < tokens.Count && tokens[i].Type == TokenType.Grid)
+        while (position < tokens.Count && tokens[position].Type == TokenType.Grid)
         {
             level++;
-            i++;
+            Move();
         }
 
         return level;
     }
 
-    private static void ParseHeaderContent(List<MdToken> tokens, ref int i, int level, List<Node> rootChildren)
+    private void ParseHeaderContent(int level, List<Node> rootChildren)
     {
-        i++; // скип пробела
+        Move();
 
         var contentNodes = new List<Node>();
-        while (i < tokens.Count && tokens[i].Type != TokenType.Escape)
+        while (position < tokens.Count && tokens[position].Type != TokenType.Escape)
         {
-            contentNodes.Add(new TextNode(tokens[i].Value));
-            i++;
+            contentNodes.Add(new TextNode(tokens[position].Value));
+            Move();
         }
 
         rootChildren.Add(new HeaderNode(level, contentNodes));
+    }
+
+    private void Move(int shift = 1)
+    {
+        position += shift;
+    }
+
+    private bool ShouldHandleAsNonFormattingUnderscore(NodeContext context, int closeIndex,
+        int underscoreCount)
+    {
+        return context == NodeContext.Italic
+               || tokens.IsUnderscoreInDifferentWord(position - 1, closeIndex, underscoreCount)
+               || tokens.IsUnderscoreInWordWithNumbers(position - 1, closeIndex, underscoreCount)
+               || tokens.GetRange(position, closeIndex - position).HaveNotPairedUnderscore();
+    }
+    
+    private bool IsValidLinkSyntax(int closeIndexMeaningText)
+    {
+        return closeIndexMeaningText < tokens.Count - 1 
+               && tokens[closeIndexMeaningText + 1].Type == TokenType.LeftParenthesis 
+               && HasPlaceForLinkText(closeIndexMeaningText);
+    }
+    
+    private bool HasPlaceForLinkText(int closeIndexMeaningText)
+    {
+        return closeIndexMeaningText + 2 < tokens.Count;
     }
 }

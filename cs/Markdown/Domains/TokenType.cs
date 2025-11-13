@@ -10,6 +10,7 @@ public enum TokenType
     Asterisk,
     Escape,
     Slash,
+    Tab,
     LeftSquareBracket, 
     RightSquareBracket, 
     LeftParenthesis, 

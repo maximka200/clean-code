@@ -61,6 +61,7 @@ public static class MdLexer
             '*' => TokenType.Asterisk,
             '_' => TokenType.Underscore,
             ' ' or '\u00a0' or '\u200b' => TokenType.Space,
+            '\t' => TokenType.Tab,
             '\n' or '\r' => TokenType.Escape,
             '\\' => TokenType.Slash,
             '[' => TokenType.LeftSquareBracket,
