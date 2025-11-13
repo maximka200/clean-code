@@ -1,5 +1,5 @@
 ﻿using Markdown.Domains;
-using Markdown.Domains.NodeTypes;
+using Markdown.Domains.Nodes;
 
 namespace Markdown.Parser;
 

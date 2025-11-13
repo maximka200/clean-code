@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Markdown.Domains.NodeTypes;
+namespace Markdown.Domains.Nodes;
 
 public class HeaderNode : Node
 {

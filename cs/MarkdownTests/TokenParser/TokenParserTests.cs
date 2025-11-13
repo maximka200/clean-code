@@ -1,6 +1,6 @@
 using FluentAssertions;
 using Markdown.Domains;
-using Markdown.Domains.NodeTypes;
+using Markdown.Domains.Nodes;
 
 // ReSharper disable UseCollectionExpression
 

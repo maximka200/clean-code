@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Markdown.Domains.NodeTypes;
+namespace Markdown.Domains.Nodes;
 
 public class LinkNode(LinkNodeType type, List<Node>? children = null) 
     : Node(NodeType.Link, children)

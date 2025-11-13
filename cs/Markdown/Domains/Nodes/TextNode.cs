@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Markdown.Domains.NodeTypes;
+namespace Markdown.Domains.Nodes;
 
 public class TextNode(string text, List<Node>? children = null) : Node(NodeType.Text, children)
 {
