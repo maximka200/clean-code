@@ -1,17 +1,23 @@
 ﻿using Markdown.Domains;
-using Markdown.Domains.NodeExtensions;
-
-// ReSharper disable InvalidXmlDocComment
+using Markdown.Domains.NodeTypes;
 
 namespace Markdown.Parser;
 
 public static class ListMdTokenExtension
 {
     /// <summary>
-    ///     Поиск закрывающего индекса закрывающего тега
+    ///     Поиск закрывающего индекса закрывающего токена
     /// </summary>
+    /// <param name="tokens">Список токенов для анализа.</param>
     /// <param name="startIndex">Индекс первого токена после конца открывающей цепочки токенов</param>
-    /// <returns>Индекс первого токена в закрывающей цепочке</returns>
+    /// <param name="patternLen">Длина цепочки токенов, соответствующих шаблону</param>
+    /// <param name="tokenType">Тип токена, который ищется</param>
+    /// <returns>
+    ///     Индекс первого токена в закрывающей цепочке, либо -1, если закрывающая цепочка не найдена.
+    ///     Метод может выбросить исключение, если входные данные некорректны:
+    ///     - <see cref="ArgumentNullException"/>: если список токенов равен null.
+    ///     - <see cref="ArgumentOutOfRangeException"/>: если startIndex выходит за пределы допустимого диапазона.
+    /// </returns>
     public static int FindClosing(this List<MdToken> tokens, int startIndex, int patternLen, TokenType tokenType)
     {
         ArgumentNullException.ThrowIfNull(tokens);
@@ -23,32 +29,33 @@ public static class ListMdTokenExtension
 
         for (var j = startIndex; j <= maxStart; j++)
         {
-            var match = true;
-            for (var k = 0; k < patternLen; k++)
-                if (tokens[j + k].Type != tokenType)
-                {
-                    match = false;
-                    break;
-                }
-
-            if (!match)
+            if (!CheckMatch(tokens, j, patternLen, tokenType))
                 continue;
 
             var prevIsSame = j - 1 >= 0 && tokens[j - 1].Type == tokenType;
             var nextIsSame = j + patternLen < tokens.Count && tokens[j + patternLen].Type == tokenType;
 
-            if (prevIsSame || nextIsSame)
-                continue;
+            var isSurroundedBySameTokens = prevIsSame || nextIsSame;
 
-            return j;
+            if (!isSurroundedBySameTokens)
+                return j;
         }
 
         return -1;
     }
 
     /// <summary>
-    ///     Проверка на то, что под__черкивания в раз__ных словах, _разных сл_овах, раз_ных словах_
+    ///     Проверка на то, что подчёркивания находятся в разных словах.
     /// </summary>
+    /// <param name="tokens">Список токенов для анализа.</param>
+    /// <param name="startIndex">Индекс первого токена в цепочке подчёркиваний.</param>
+    /// <param name="closeIndex">Индекс последнего токена в цепочке подчёркиваний.</param>
+    /// <param name="underscoreCount">Количество подчёркиваний в цепочке.</param>
+    /// <returns>
+    ///     Возвращает true, если подчёркивания находятся в разных словах, иначе false.
+    ///     Метод может выбросить исключение, если входные данные некорректны:
+    ///     - <see cref="ArgumentOutOfRangeException"/>: если closeIndex меньше startIndex.
+    /// </returns>
     public static bool IsUnderscoreInDifferentWord(this List<MdToken> tokens, int startIndex, int closeIndex,
         int underscoreCount)
     {
@@ -67,21 +74,30 @@ public static class ListMdTokenExtension
         return hasSeparator && (prevIsWord || nextIsWord);
     }
 
+    /// <summary>
+    ///     Проверка на то, что подчёркивания находятся в разных словах.
+    /// </summary>
+    /// <param name="tokens">Список токенов для анализа.</param>
+    /// <param name="startIndex">Индекс первого токена в цепочке подчёркиваний.</param>
+    /// <param name="closeIndex">Индекс последнего токена в цепочке подчёркиваний.</param>
+    /// <param name="underscoreCount">Количество подчёркиваний в цепочке.</param>
+    /// <returns>
+    ///     Возвращает true, если подчёркивания находятся в разных словах, иначе false.
+    ///     Метод может выбросить исключение, если входные данные некорректны:
+    ///     - <see cref="ArgumentOutOfRangeException"/>: если closeIndex меньше startIndex.
+    /// </returns>
     public static bool IsUnderscoreInWordWithNumbers(this List<MdToken> tokens, int startIndex, int closeIndex,
         int underscoreCount)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(closeIndex, startIndex);
 
-        var range = tokens.GetRange(startIndex + underscoreCount, closeIndex - startIndex);
-
-        var hasNumber = range.ContainsTokenType(TokenType.Number);
-
+        var hasNumber = tokens.GetRange(startIndex + underscoreCount, closeIndex - startIndex).ContainsTokenType(TokenType.Number);
         var prevIsWord = startIndex > 0 && tokens[startIndex - 1].Type == TokenType.Word;
 
         return hasNumber && prevIsWord;
     }
     
-    internal static int GetLengthChainOfTokenTypesBefore(this List<MdToken> tokens, int index, TokenType tokenType)
+    internal static int GetTokensCountBefore(this List<MdToken> tokens, int index, TokenType tokenType)
     {
         var tokenChainLength = 0;
         while (index - 1 >= 0 && tokens[index - 1].Type == tokenType)
@@ -95,11 +111,11 @@ public static class ListMdTokenExtension
 
     internal static void AddSymbol(this List<Node> root, string symbol, int count)
     {
-        for (var _ = 0; _ < count; _++)
+        for (var i = 0; i < count; i++)
             root.Add(new TextNode(symbol));
     }
 
-    internal static int GetLengthChainOfTokenTypeAfter(this List<MdToken> tokens, int startIndex, TokenType tokenType)
+    internal static int GetTokensCountAfter(this List<MdToken> tokens, int startIndex, TokenType tokenType)
     {
         var tokenChainLength = 0;
         while (startIndex < tokens.Count && tokens[startIndex].Type == tokenType)
@@ -119,5 +135,14 @@ public static class ListMdTokenExtension
     private static bool ContainsTokenType(this List<MdToken> tokens, TokenType tokenType)
     {
         return tokens.Any(token => token.Type == tokenType);
+    }
+    
+    private static bool CheckMatch(List<MdToken> tokens, int startIndex, int patternLen, TokenType tokenType)
+    {
+        for (var k = 0; k < patternLen; k++)
+            if (tokens[startIndex + k].Type != tokenType)
+                return false;
+
+        return true;
     }
 }

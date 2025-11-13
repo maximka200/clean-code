@@ -10,8 +10,8 @@ public enum TokenType
     Asterisk,
     Escape,
     Slash,
-    LeftSquareBracket, // [
-    RightSquareBracket, // ]
-    LeftParenthesis, // (
-    RightParenthesis // )
+    LeftSquareBracket, 
+    RightSquareBracket, 
+    LeftParenthesis, 
+    RightParenthesis
 }

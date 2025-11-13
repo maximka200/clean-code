@@ -1,5 +1,5 @@
 ﻿using Markdown.Domains;
-using Markdown.Domains.NodeExtensions;
+using Markdown.Domains.NodeTypes;
 
 namespace Markdown.Parser;
 
@@ -89,15 +89,15 @@ public static class TokenParser
 
     private static void HandleUnderscore(List<MdToken> tokens, ref int i, List<Node> rootChildren, NodeContext context)
     {
-        var underscoreCount = tokens.GetLengthChainOfTokenTypeAfter(i, TokenType.Underscore);
+        var underscoreCount = tokens.GetTokensCountAfter(i, TokenType.Underscore);
         i += underscoreCount;
-        var spaceCountAfter = tokens.GetLengthChainOfTokenTypeAfter(i, TokenType.Space);
+        var spaceCountAfter = tokens.GetTokensCountAfter(i, TokenType.Space);
         i += spaceCountAfter;
 
         if (spaceCountAfter != 0)
         {
             rootChildren.AddSymbol("_", underscoreCount);
-            rootChildren.AddSymbol(" ", underscoreCount);
+            rootChildren.AddSymbol(" ", spaceCountAfter);
             return;
         }
 
@@ -121,7 +121,7 @@ public static class TokenParser
     private static void HandleLeftSquareBracket(List<MdToken> tokens, ref int i, List<Node> rootChildren,
         NodeContext context)
     {
-        var squareBracketsLength = tokens.GetLengthChainOfTokenTypeAfter(i, TokenType.LeftSquareBracket);
+        var squareBracketsLength = tokens.GetTokensCountAfter(i, TokenType.LeftSquareBracket);
         var closeIndexMeaningText = tokens.FindClosing(i, squareBracketsLength, TokenType.RightSquareBracket);
         if (closeIndexMeaningText == -1)
         {
@@ -193,33 +193,32 @@ public static class TokenParser
     {
         var closeIndex = tokens.FindClosing(i, underscoreCount, TokenType.Underscore);
 
-        if (closeIndex != -1)
+        if (closeIndex == -1)
         {
-            var spaceCountBefore = tokens.GetLengthChainOfTokenTypesBefore(closeIndex, TokenType.Space);
-
-            // проверка на пробелы до
-            if (spaceCountBefore > 0)
-                return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, spaceCountBefore,
-                    rootChildren);
-
-            var nodeType = underscoreCount == 1 ? NodeType.Italic : NodeType.Bold;
-
-            // проверка на _ в разных словах, _ в словах с числами
-            if (context == NodeContext.Italic
-                || tokens.IsUnderscoreInDifferentWord(i - 1, closeIndex, underscoreCount)
-                || tokens.IsUnderscoreInWordWithNumbers(i - 1, closeIndex, underscoreCount)
-                || tokens.GetRange(i, closeIndex - i).HaveNotPairedUnderscore())
-                return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, 0, rootChildren,
-                    context);
-
-            var inner = Parse(tokens.GetRange(i, closeIndex - i), Node.GetNodeContext(nodeType));
-
-            rootChildren.Add(new Node(nodeType, inner.Children));
-            return closeIndex - i + underscoreCount;
+            rootChildren.AddSymbol("_", underscoreCount);
+            return 0;
         }
 
-        rootChildren.AddSymbol("_", underscoreCount);
-        return 0;
+        var spaceCountBefore = tokens.GetTokensCountBefore(closeIndex, TokenType.Space);
+
+        // проверка на пробелы до
+        if (spaceCountBefore > 0)
+            return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, spaceCountBefore, rootChildren);
+
+        // проверка на _ в разных словах, _ в словах с числами
+        if (context == NodeContext.Italic
+            || tokens.IsUnderscoreInDifferentWord(i - 1, closeIndex, underscoreCount)
+            || tokens.IsUnderscoreInWordWithNumbers(i - 1, closeIndex, underscoreCount)
+            || tokens.GetRange(i, closeIndex - i).HaveNotPairedUnderscore())
+            return HandleNonFormattingUnderscore(tokens, i, closeIndex, underscoreCount, 0, rootChildren,
+                context);
+        
+        var nodeType = underscoreCount == 1 ? NodeType.Italic : NodeType.Bold;
+
+        var inner = Parse(tokens.GetRange(i, closeIndex - i), Node.GetNodeContext(nodeType));
+
+        rootChildren.Add(new Node(nodeType, inner.Children));
+        return closeIndex - i + underscoreCount;
     }
 
     private static int CountHeaderLevel(List<MdToken> tokens, ref int i)

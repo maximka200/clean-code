@@ -1,10 +1,12 @@
-namespace Markdown.Domains.NodeExtensions;
+using System.Text;
+
+namespace Markdown.Domains.NodeTypes;
 
 public class HeaderNode : Node
 {
     private const int MaxHeaderLevel = 6;
 
-    public int Level { get; }
+    private int Level { get; }
 
     public HeaderNode(int level = 1, List<Node>? children = null)
         : base(NodeType.Header, children)
@@ -16,5 +18,15 @@ public class HeaderNode : Node
             );
 
         Level = level;
+    }
+    
+    public override void ToHtml(StringBuilder sb)
+    {
+        sb.Append($"<h{Level}>");
+        foreach (var child in Children)
+        {
+            child.ToHtml(sb);
+        }
+        sb.Append($"</h{Level}>");
     }
 }

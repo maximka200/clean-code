@@ -21,7 +21,7 @@ public static class MdLexer
             {
                 case TokenType.Word or TokenType.Number:
                     var (value, nextIndex) = CollectFullValue(text, i,
-                        tokenType is TokenType.Word ? IsLetterOrDotСomma : char.IsNumber
+                        tokenType is TokenType.Word ? IsLetterOrSign : char.IsNumber
                     );
                     tokens.Add(new MdToken(tokenType, value));
                     i = nextIndex;
@@ -55,7 +55,7 @@ public static class MdLexer
     {
         return text switch
         {
-            _ when IsLetterOrDotСomma(text) => TokenType.Word,
+            _ when IsLetterOrSign(text) => TokenType.Word,
             _ when char.IsNumber(text) => TokenType.Number,
             '#' => TokenType.Grid,
             '*' => TokenType.Asterisk,
@@ -71,8 +71,10 @@ public static class MdLexer
         };
     }
 
-    private static bool IsLetterOrDotСomma(this char ch)
+    private static readonly List<char> AllowedSymbols = ['.', ',', ';', ':', '!', '?'];
+
+    private static bool IsLetterOrSign(this char ch)
     {
-        return char.IsLetter(ch) || ch == '.' || ch == ',';
+        return char.IsLetter(ch) || AllowedSymbols.Contains(ch);
     }
 }
