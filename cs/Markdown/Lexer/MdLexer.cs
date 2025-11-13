@@ -21,7 +21,7 @@ public static class MdLexer
             {
                 case TokenType.Word or TokenType.Number:
                     var (value, nextIndex) = CollectFullValue(text, i,
-                        tokenType is TokenType.Word ? IsLetterOrSign : char.IsNumber
+                        tokenType is TokenType.Word ? IsPieceOfWord : char.IsNumber
                     );
                     tokens.Add(new MdToken(tokenType, value));
                     i = nextIndex;
@@ -51,31 +51,34 @@ public static class MdLexer
         return (value.ToString(), i - 1);
     }
 
+    private static readonly Dictionary<char, TokenType> TokenMap = new()
+    {
+        { '#', TokenType.Grid },
+        { '*', TokenType.Asterisk },
+        { '_', TokenType.Underscore },
+        { ' ', TokenType.Space },
+        { '\u00a0', TokenType.Space },
+        { '\u200b', TokenType.Space },
+        { '\t', TokenType.Tab },
+        { '\n', TokenType.Escape },
+        { '\r', TokenType.Escape },
+        { '\\', TokenType.Slash },
+        { '[', TokenType.LeftSquareBracket },
+        { ']', TokenType.RightSquareBracket },
+        { '(', TokenType.LeftParenthesis },
+        { ')', TokenType.RightParenthesis }
+    };
+
     public static TokenType GetTokenType(char text)
     {
-        return text switch
-        {
-            _ when IsLetterOrSign(text) => TokenType.Word,
-            _ when char.IsNumber(text) => TokenType.Number,
-            '#' => TokenType.Grid,
-            '*' => TokenType.Asterisk,
-            '_' => TokenType.Underscore,
-            ' ' or '\u00a0' or '\u200b' => TokenType.Space,
-            '\t' => TokenType.Tab,
-            '\n' or '\r' => TokenType.Escape,
-            '\\' => TokenType.Slash,
-            '[' => TokenType.LeftSquareBracket,
-            ']' => TokenType.RightSquareBracket,
-            '(' => TokenType.LeftParenthesis,
-            ')' => TokenType.RightParenthesis,
-            _ => throw new ArgumentOutOfRangeException($"Unknown token type: {text}")
-        };
+        if (TokenMap.TryGetValue(text, out var tokenType))
+            return tokenType;
+        
+        return char.IsNumber(text) ? TokenType.Number : TokenType.Word;
     }
 
-    private static readonly List<char> AllowedSymbols = ['.', ',', ';', ':', '!', '?'];
-
-    private static bool IsLetterOrSign(this char ch)
+    private static bool IsPieceOfWord(this char ch)
     {
-        return char.IsLetter(ch) || AllowedSymbols.Contains(ch);
+        return char.IsLetter(ch) || !TokenMap.ContainsKey(ch);
     }
 }

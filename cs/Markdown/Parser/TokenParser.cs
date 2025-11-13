@@ -9,14 +9,7 @@ namespace Markdown.Parser;
 public class TokenParser(List<MdToken> tokens, int position = 0)
 {
     private int position = position;
-
-    private static TokenParser InitializeWith(List<MdToken> inputTokens)
-    {
-        var newTokenParser = new TokenParser(inputTokens);
-
-        return newTokenParser;
-    }
-
+    
     public Node Parse(NodeContext context = NodeContext.None)
     {
         var rootChildren = new List<Node>();
@@ -36,7 +29,7 @@ public class TokenParser(List<MdToken> tokens, int position = 0)
                     continue;
 
                 case TokenType.Slash:
-                    HandleEscapedCharacter(rootChildren);
+                    HandleSlashCharacter(rootChildren);
                     continue;
 
                 case TokenType.Underscore:
@@ -54,6 +47,7 @@ public class TokenParser(List<MdToken> tokens, int position = 0)
                 case TokenType.Number:
                 case TokenType.Space:
                 case TokenType.RightSquareBracket:
+                case TokenType.Tab:
                 default:
                     HandleText(token, rootChildren);
                     continue;
@@ -62,12 +56,20 @@ public class TokenParser(List<MdToken> tokens, int position = 0)
 
         return new Node(NodeType.Root, rootChildren);
     }
+    
+    private static TokenParser InitializeWith(List<MdToken> inputTokens)
+    {
+        var newTokenParser = new TokenParser(inputTokens);
+
+        return newTokenParser;
+    }
 
     private void HandleHeader(List<Node> rootChildren)
     {
         var level = GetCountHeaderLevel();
 
-        if (position < tokens.Count && tokens[position].Type == TokenType.Space)
+        if (position < tokens.Count && TokenIsTokenType(position, TokenType.Space) 
+                                    && level <= HeaderNode.MaxHeaderLevel)
             ParseHeaderContent(level, rootChildren);
         else
             rootChildren.Add(new TextNode(new string('#', level)));
@@ -79,7 +81,7 @@ public class TokenParser(List<MdToken> tokens, int position = 0)
         Move();
     }
 
-    private void HandleEscapedCharacter(List<Node> rootChildren)
+    private void HandleSlashCharacter(List<Node> rootChildren)
     {
         if (position + 1 < tokens.Count)
         {
@@ -138,20 +140,18 @@ public class TokenParser(List<MdToken> tokens, int position = 0)
             Move();
         }
     }
-    
+
     private LinkNode? TryParseLink(NodeContext context)
     {
         var bracketsLength = tokens.GetTokensCountAfter(position, TokenType.LeftSquareBracket);
         var closeIndexMeaningText = tokens.FindClosing(position, bracketsLength, TokenType.RightSquareBracket);
 
-        if (closeIndexMeaningText == -1)
-            return null;
-
-        if (!IsValidLinkSyntax(closeIndexMeaningText))
+        if (closeIndexMeaningText == -1 || TokenIsTokenType(closeIndexMeaningText - 1, TokenType.Slash)
+            || !IsValidLinkSyntax(closeIndexMeaningText))
             return null;
 
         var closeIndexLinkText = tokens.FindClosing(closeIndexMeaningText + 2, 1, TokenType.RightParenthesis);
-        if (closeIndexLinkText == -1)
+        if (closeIndexLinkText == -1 || TokenIsTokenType(closeIndexLinkText - 1, TokenType.Slash))
             return null;
 
         var linkNode = BuildLinkNode(
@@ -188,7 +188,7 @@ public class TokenParser(List<MdToken> tokens, int position = 0)
     {
         var closeIndex = tokens.FindClosing(position, underscoreCount, TokenType.Underscore);
 
-        if (closeIndex == -1)
+        if (closeIndex == -1 || TokenIsTokenType(closeIndex - 1, TokenType.Slash)) 
         {
             rootChildren.AddSymbol("_", underscoreCount);
             return 0;
@@ -251,7 +251,8 @@ public class TokenParser(List<MdToken> tokens, int position = 0)
 
     private void ParseHeaderContent(int level, List<Node> rootChildren)
     {
-        Move();
+        var spaceCount = tokens.GetTokensCountAfter(position, TokenType.Space);
+        Move(spaceCount);
 
         var contentNodes = new List<Node>();
         while (position < tokens.Count && tokens[position].Type != TokenType.Escape)
@@ -287,5 +288,10 @@ public class TokenParser(List<MdToken> tokens, int position = 0)
     private bool HasPlaceForLinkText(int closeIndexMeaningText)
     {
         return closeIndexMeaningText + 2 < tokens.Count;
+    }
+
+    private bool TokenIsTokenType(int index, TokenType type)
+    {
+        return tokens[index].Type == type;
     }
 }

@@ -94,8 +94,21 @@ public class Tests
 
     [Test]
     [TestCase('T', TokenType.Word)]
+    [TestCase('a', TokenType.Word)]
     [TestCase('#', TokenType.Grid)]
+    [TestCase('*', TokenType.Asterisk)]
     [TestCase('_', TokenType.Underscore)]
+    [TestCase(' ', TokenType.Space)]
+    [TestCase('\u00a0', TokenType.Space)] 
+    [TestCase('\u200b', TokenType.Space)] 
+    [TestCase('\t', TokenType.Tab)]
+    [TestCase('\n', TokenType.Escape)]
+    [TestCase('\r', TokenType.Escape)]
+    [TestCase('\\', TokenType.Slash)]
+    [TestCase('[', TokenType.LeftSquareBracket)]
+    [TestCase(']', TokenType.RightSquareBracket)]
+    [TestCase('(', TokenType.LeftParenthesis)]
+    [TestCase(')', TokenType.RightParenthesis)]
     [TestCase('1', TokenType.Number)]
     public void GetTokenType_ShouldGetToken_Correctly(char input, TokenType expectedOutput)
     {

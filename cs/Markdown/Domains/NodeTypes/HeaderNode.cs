@@ -4,7 +4,7 @@ namespace Markdown.Domains.NodeTypes;
 
 public class HeaderNode : Node
 {
-    private const int MaxHeaderLevel = 6;
+    public const int MaxHeaderLevel = 6;
 
     private int Level { get; }
 

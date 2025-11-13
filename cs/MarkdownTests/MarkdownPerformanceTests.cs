@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using FluentAssertions;
+using static Markdown.Markdown;
+using TimeSpan = System.TimeSpan;
 
 namespace MarkdownTest;
 
@@ -8,7 +10,8 @@ namespace MarkdownTest;
 public class MarkdownPerformanceTests
 {
     [Test]
-    public void Markdown_Render_ShouldWorkFast()
+    [Repeat(100)]
+    public void Markdown_Render_ShouldWorkFastThanNLogN()
     {
         const int scale = 10;
         var sw = new Stopwatch();
@@ -18,8 +21,8 @@ public class MarkdownPerformanceTests
         {
             var markdown = GenerateRandomMarkdown(length);
             sw.Start();
-
-            Markdown.Markdown.Render(markdown);
+            GC.Collect();
+            Render(markdown);
 
             sw.Stop();
             timeSpans.Add(sw.Elapsed);
@@ -35,13 +38,10 @@ public class MarkdownPerformanceTests
 
     private static string GenerateRandomMarkdown(int len)
     {
-        var rand = new Random();
-        var specElements = new[] { " ", "_", "__", "#", "\\", "\\n", "(", ")", "[", "]" };
-        var elements = "ABCDEFGHIJKLMNOPQRSTUVWXY1234567890".Select(c => c.ToString()).Concat(specElements).ToList();
-
+        var elements = Enumerable.Range(32, 96).Select(c => ((char)c).ToString()).ToList();
         var sb = new StringBuilder();
         for (var i = 0; i < len; i++)
-            sb.Append(elements[rand.Next(elements.Count)]);
+            sb.Append(elements[Random.Shared.Next(elements.Count)]);
 
         return sb.ToString();
     }

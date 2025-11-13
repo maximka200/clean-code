@@ -91,8 +91,9 @@ public static class ListMdTokenExtension
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(closeIndex, startIndex);
 
-        var hasNumber = tokens.GetRange(startIndex + underscoreCount, closeIndex - startIndex).ContainsTokenType(TokenType.Number);
-        var prevIsWord = startIndex > 0 && tokens[startIndex - 1].Type == TokenType.Word;
+        var hasNumber = tokens.GetRange(startIndex + 1, closeIndex - startIndex).ContainsTokenType(TokenType.Number);
+        var prevIsWord = startIndex > 0 && startIndex - underscoreCount >= 0 
+                                        && tokens[startIndex - underscoreCount].Type == TokenType.Word;
 
         return hasNumber && prevIsWord;
     }
