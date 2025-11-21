@@ -8,10 +8,10 @@ namespace Markdown.Generator;
 /// </summary>
 public static class HtmlGenerator
 {
-    public static string Generate(IToHtml node)
+    public static string Generate(IHtmlConverter node)
     {
         var sb = new StringBuilder();
-        node.ToHtml(sb);
+        node.ConvertToHtml(sb);
         return sb.ToString();
     }
 }

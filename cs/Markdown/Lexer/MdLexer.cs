@@ -4,10 +4,47 @@ using Markdown.Domains;
 namespace Markdown.Lexer;
 
 /// <summary>
-///     Разбивает текст на Md токены
+///     Разбивает входной текст на последовательность Md-токенов (<see cref="TokenType"/>).
 /// </summary>
+/// <remarks>
+///     Поддерживаемые типы токенов:
+///     <list type="bullet">
+///         <item><description><see cref="TokenType.Word"/> — последовательность буквенных символов.</description></item>
+///         <item><description><see cref="TokenType.Number"/> — последовательность цифр.</description></item>
+///         <item><description><see cref="TokenType.Space"/> — пробельный символ пробела.</description></item>
+///         <item><description>
+///             <see cref="TokenType.Tab"/> — символ табуляции, который при разборе
+///             заменяется на <see cref="MdLexer.SpacesCountInTab"/> пробелов.
+///         </description></item>
+///         <item><description><see cref="TokenType.Underscore"/> — символ подчёркивания (<c>_</c>).</description></item>
+///         <item><description><see cref="TokenType.Grid"/> — символ решётки (<c>#</c>).</description></item>
+///         <item><description><see cref="TokenType.Escape"/> — символ экранирования (<c>\</c>).</description></item>
+///         <item><description><see cref="TokenType.Slash"/> — слэш (<c>/</c>).</description></item>
+///         <item><description><see cref="TokenType.LeftSquareBracket"/> — левая квадратная скобка (<c>[</c>).</description></item>
+///         <item><description><see cref="TokenType.RightSquareBracket"/> — правая квадратная скобка (<c>]</c>).</description></item>
+///         <item><description><see cref="TokenType.LeftParenthesis"/> — левая круглая скобка (<c>(</c>).</description></item>
+///         <item><description><see cref="TokenType.RightParenthesis"/> — правая круглая скобка (<c>)</c>).</description></item>
+///     </list>
+/// </remarks>
 public static class MdLexer
-{
+{ 
+    private static readonly Dictionary<char, TokenType> TokenMap = new()
+    {
+        { '#', TokenType.Grid },
+        { '_', TokenType.Underscore },
+        { ' ', TokenType.Space },
+        { '\u00a0', TokenType.Space },
+        { '\u200b', TokenType.Space },
+        { '\t', TokenType.Space },
+        { '\n', TokenType.Escape },
+        { '\r', TokenType.Escape },
+        { '\\', TokenType.Slash },
+        { '[', TokenType.LeftSquareBracket },
+        { ']', TokenType.RightSquareBracket },
+        { '(', TokenType.LeftParenthesis },
+        { ')', TokenType.RightParenthesis }
+    };
+    
     public static List<MdToken> Tokenize(string text)
     {
         var tokens = new List<MdToken>();
@@ -34,6 +71,14 @@ public static class MdLexer
 
         return tokens;
     }
+    
+    public static TokenType GetTokenType(char text)
+    {
+        if (TokenMap.TryGetValue(text, out var tokenType))
+            return tokenType;
+
+        return char.IsNumber(text) ? TokenType.Number : TokenType.Word;
+    }
 
     private static (string word, int nextIndex) CollectFullValue(string text, int startIndex,
         Func<char, bool> predicate)
@@ -50,33 +95,6 @@ public static class MdLexer
 
         return (value.ToString(), i - 1);
     }
-
-    private static readonly Dictionary<char, TokenType> TokenMap = new()
-    {
-        { '#', TokenType.Grid },
-        { '*', TokenType.Asterisk },
-        { '_', TokenType.Underscore },
-        { ' ', TokenType.Space },
-        { '\u00a0', TokenType.Space },
-        { '\u200b', TokenType.Space },
-        { '\t', TokenType.Tab },
-        { '\n', TokenType.Escape },
-        { '\r', TokenType.Escape },
-        { '\\', TokenType.Slash },
-        { '[', TokenType.LeftSquareBracket },
-        { ']', TokenType.RightSquareBracket },
-        { '(', TokenType.LeftParenthesis },
-        { ')', TokenType.RightParenthesis }
-    };
-
-    public static TokenType GetTokenType(char text)
-    {
-        if (TokenMap.TryGetValue(text, out var tokenType))
-            return tokenType;
-
-        return char.IsNumber(text) ? TokenType.Number : TokenType.Word;
-    }
-
     private static bool IsPieceOfWord(this char ch)
     {
         return char.IsLetter(ch) || !TokenMap.ContainsKey(ch);

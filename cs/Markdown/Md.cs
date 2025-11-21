@@ -4,7 +4,7 @@ using Markdown.Parser;
 
 namespace Markdown;
 
-public static class Markdown
+public static class Md
 {
     public static string Render(string text)
     {

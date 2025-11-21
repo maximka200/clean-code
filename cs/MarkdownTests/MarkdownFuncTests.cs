@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
-using static Markdown.Markdown;
+using Markdown.Lexer;
+using static Markdown.Md;
 
 namespace MarkdownTest;
 
@@ -28,6 +29,7 @@ public class MarkdownFuncTests
     [TestCase("# _text_ __text__", "<h1><em>text</em> <strong>text</strong></h1>")]
     [TestCase("  ## h1", "  ## h1")]
     [TestCase("########### h1", "########### h1")]
+    [TestCase("#", "<h1></h1>")] //  в оригинальном Md также
     public void Should_ConvertMarkdownWithHeadersToHtml_Correctly(string markdown, string expectedHtml)
     {
         var html = Render(markdown);
@@ -39,14 +41,20 @@ public class MarkdownFuncTests
     [TestCase(@"Escaped \_underscore\_", "Escaped _underscore_")]
     [TestCase(@"Escaped \_underscore_", "Escaped _underscore_")]
     [TestCase(@"Escaped _underscore\_", "Escaped _underscore_")]
-    [TestCase(@"Escaped _underscore\\_", "Escaped _underscore\\_")]
+    [TestCase(@"Escaped _underscore\\_", "Escaped <em>underscore\\</em>")]
     [TestCase(@"\## text", "## text")]
     [TestCase(@"\#\# text", "## text")]
     [TestCase(@"\[text](example.com)", "[text](example.com)")]
     [TestCase(@"[text\](example.com)", "[text](example.com)")]
     [TestCase(@"\[text]\(example.com)", "[text](example.com)")]
     [TestCase(@"[text](example.com\)", "[text](example.com)")]
-    [TestCase(@"\\[text](example.com)", "\\<a href=\"example.com\">text</a>")]
+    [TestCase(@"\\[text](example.com)", """\<a href="example.com">text</a>""")]
+    [TestCase(@"Escaped _underscore\__", "Escaped <em>underscore_</em>")]
+    [TestCase(@"[text\\](example.com)", """<a href="example.com">text\</a>""")]
+    [TestCase("_underscore _", "_underscore _")]
+    [TestCase(@"_underscore\ _", @"_underscore\ _")]
+    [TestCase(@"\ \", @"\ \")]
+    [TestCase("_\t_", "_\t_")]
     public void Should_ConvertMarkdownWithShieldingToHtml_Correctly(string markdown, string expectedHtml)
     {
         var html = Render(markdown);

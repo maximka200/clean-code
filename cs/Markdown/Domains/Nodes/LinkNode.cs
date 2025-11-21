@@ -7,12 +7,12 @@ public class LinkNode(LinkNodeType type, List<Node>? children = null)
 {
     private LinkNodeType LinkNodeType { get; } = type;
     
-    public override void ToHtml(StringBuilder sb)
+    public override void ConvertToHtml(StringBuilder sb)
     {
         if (LinkNodeType != LinkNodeType.LinkRoot || Children.Count < 2)
         {
             foreach (var child in Children)
-                child.ToHtml(sb);
+                child.ConvertToHtml(sb);
             return;
         }
 
@@ -27,17 +27,17 @@ public class LinkNode(LinkNodeType type, List<Node>? children = null)
         if (textNode == null || urlNode == null)
         {
             foreach (var child in Children)
-                child.ToHtml(sb);
+                child.ConvertToHtml(sb);
             return;
         }
         
         var textBuilder = new StringBuilder();
         foreach (var child in textNode.Children)
-            child.ToHtml(textBuilder);
+            child.ConvertToHtml(textBuilder);
 
         var urlBuilder = new StringBuilder();
         foreach (var child in urlNode.Children)
-            child.ToHtml(urlBuilder);
+            child.ConvertToHtml(urlBuilder);
         
         sb.Append("<a href=\"");
         sb.Append(urlBuilder);

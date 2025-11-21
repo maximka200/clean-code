@@ -1,10 +1,11 @@
 ﻿using FluentAssertions;
 using Markdown.Domains;
 using Markdown.Domains.Nodes;
+using static Markdown.Generator.HtmlGenerator;
 
 // ReSharper disable UseCollectionExpression
 
-namespace MarkdownTest.HtmlGenerator;
+namespace MarkdownTest.Generator;
 
 public class HtmlGeneratorTests
 {
@@ -36,7 +37,7 @@ public class HtmlGeneratorTests
     [TestCaseSource(nameof(HtmlGeneratorTestCases))]
     public void Parse_ShouldParse_Correctly(Node node, string expectedText)
     {
-        var result = Markdown.Generator.HtmlGenerator.Generate(node);
+        var result = Generate(node);
 
         result.Should().BeEquivalentTo(expectedText);
     }

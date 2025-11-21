@@ -20,12 +20,12 @@ public class HeaderNode : Node
         Level = level;
     }
 
-    public override void ToHtml(StringBuilder sb)
+    public override void ConvertToHtml(StringBuilder sb)
     {
         sb.Append($"<h{Level}>");
         foreach (var child in Children)
         {
-            child.ToHtml(sb);
+            child.ConvertToHtml(sb);
         }
 
         sb.Append($"</h{Level}>");

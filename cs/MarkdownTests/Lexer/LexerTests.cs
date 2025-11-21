@@ -88,19 +88,19 @@ public class Tests
     public void Tokenize_ShouldTokenize_Correctly(string input, List<MdToken> expectedOutput)
     {
         var actualInput = MdLexer.Tokenize(input);
-
+        
+        actualInput.Should().BeEquivalentTo(expectedOutput);
     }
 
     [Test]
     [TestCase('T', TokenType.Word)]
     [TestCase('a', TokenType.Word)]
     [TestCase('#', TokenType.Grid)]
-    [TestCase('*', TokenType.Asterisk)]
     [TestCase('_', TokenType.Underscore)]
     [TestCase(' ', TokenType.Space)]
     [TestCase('\u00a0', TokenType.Space)] 
     [TestCase('\u200b', TokenType.Space)] 
-    [TestCase('\t', TokenType.Tab)]
+    [TestCase('\t', TokenType.Space)]
     [TestCase('\n', TokenType.Escape)]
     [TestCase('\r', TokenType.Escape)]
     [TestCase('\\', TokenType.Slash)]

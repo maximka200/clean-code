@@ -3,12 +3,12 @@ using ArgumentOutOfRangeException = System.ArgumentOutOfRangeException;
 
 namespace Markdown.Domains;
 
-public class Node(NodeType type, List<Node>? children = null) : IToHtml
+public class Node(NodeType type, List<Node>? children = null) : IHtmlConverter
 {
     private NodeType Type { get; } = type;
     public List<Node> Children { get; } = children ?? [];
 
-    public virtual void ToHtml(StringBuilder sb)
+    public virtual void ConvertToHtml(StringBuilder sb)
     {
         switch (Type)
         {
@@ -44,14 +44,14 @@ public class Node(NodeType type, List<Node>? children = null) : IToHtml
     private void RenderRoot(StringBuilder sb)
     {
         foreach (var child in Children)
-            child.ToHtml(sb);
+            child.ConvertToHtml(sb);
     }
 
     private void RenderItalic(StringBuilder sb)
     {
         sb.Append("<em>");
         foreach (var child in Children)
-            child.ToHtml(sb);
+            child.ConvertToHtml(sb);
         sb.Append("</em>");
     }
 
@@ -59,7 +59,7 @@ public class Node(NodeType type, List<Node>? children = null) : IToHtml
     {
         sb.Append("<strong>");
         foreach (var child in Children)
-            child.ToHtml(sb);
+            child.ConvertToHtml(sb);
         sb.Append("</strong>");
     }
 

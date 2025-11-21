@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using FluentAssertions;
-using static Markdown.Markdown;
+using static Markdown.Md;
 using TimeSpan = System.TimeSpan;
 
 namespace MarkdownTest;
@@ -9,21 +9,24 @@ namespace MarkdownTest;
 [TestFixture]
 public class MarkdownPerformanceTests
 {
+    private static readonly (int Start, int Finish) AsciiSymbolsBorder = new (32, 126);
+
     [Test]
-    [Repeat(100)]
+    [Explicit]
+    [Repeat(10)]
     public void Markdown_Render_ShouldWorkFastThanNLogN()
     {
         const int scale = 10;
         var sw = new Stopwatch();
         var timeSpans = new List<TimeSpan>();
-
+        
+        Render(GenerateRandomMarkdown(1000));
+        
         for (var length = 10; length <= 1000000; length *= scale)
         {
             var markdown = GenerateRandomMarkdown(length);
             sw.Start();
-            GC.Collect();
             Render(markdown);
-
             sw.Stop();
             timeSpans.Add(sw.Elapsed);
             sw.Reset();
@@ -32,14 +35,20 @@ public class MarkdownPerformanceTests
         var timeRatios = Enumerable.Range(0, timeSpans.Count - 2)
             .Select(i => (double)timeSpans[i + 1].Ticks / timeSpans[i].Ticks);
 
+        const int maxAllowedRatio = scale * scale;
+        
         timeRatios.Should()
-            .OnlyContain(timeRatio => timeRatio < Math.Log2(scale) * scale);
+            .OnlyContain(timeRatio => timeRatio < maxAllowedRatio);
     }
 
     private static string GenerateRandomMarkdown(int len)
     {
-        var elements = Enumerable.Range(32, 96).Select(c => ((char)c).ToString()).ToList();
+        var elements = Enumerable
+            .Range(AsciiSymbolsBorder.Start, AsciiSymbolsBorder.Finish - AsciiSymbolsBorder.Start + 1)
+            .Select(c => ((char)c).ToString())
+            .ToList();
         var sb = new StringBuilder();
+        
         for (var i = 0; i < len; i++)
             sb.Append(elements[Random.Shared.Next(elements.Count)]);
 

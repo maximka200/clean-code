@@ -6,7 +6,7 @@ public class TextNode(string text, List<Node>? children = null) : Node(NodeType.
 {
     private string Text { get; } = text;
     
-    public override void ToHtml(StringBuilder sb)
+    public override void ConvertToHtml(StringBuilder sb)
     {
         sb.Append(Text);
     }
