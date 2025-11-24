@@ -10,6 +10,7 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
 {
     private readonly List<MdToken> tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
     private int index = index;
+
     private static readonly HashSet<TokenType> EscapableTokenTypes =
     [
         TokenType.Grid,
@@ -25,7 +26,7 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
     private bool HasNext => index + 1 < tokens.Count;
     private MdToken Current => tokens[index];
 
-    public Node Parse(NodeContext context = NodeContext.None)
+    public RootNode Parse(NodeContext context = NodeContext.None)
     {
         var rootChildren = new List<Node>();
 
@@ -54,7 +55,7 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
                 case TokenType.LeftSquareBracket:
                     HandleLeftSquareBracket(rootChildren, context);
                     break;
-                
+
                 case TokenType.LeftParenthesis:
                 case TokenType.RightParenthesis:
                 case TokenType.Word:
@@ -67,7 +68,7 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
             }
         }
 
-        return new Node(NodeType.Root, rootChildren);
+        return new RootNode(rootChildren);
     }
 
     private static TokenParser CreateParserFor(List<MdToken> inputTokens) =>
@@ -127,13 +128,14 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
 
     private void HandleNewLine(List<Node> rootChildren)
     {
-        rootChildren.Add(new Node(NodeType.NewLine));
+        rootChildren.Add(new NewLineNode());
         MoveIndex();
     }
-    
+
     #endregion
 
     #region Slash
+
     private void HandleSlashCharacter(List<Node> rootChildren)
     {
         if (!HasNext)
@@ -156,9 +158,11 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
             MoveIndex();
         }
     }
+
     #endregion
 
     #region Text
+
     private void HandleText(MdToken token, List<Node> rootChildren)
     {
         rootChildren.Add(new TextNode(token.Value));
@@ -195,7 +199,9 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
         }
     }
 
-    private int HandleUnderscoresAndReturnShift(int underscoreCount, List<Node> rootChildren,
+    private int HandleUnderscoresAndReturnShift(
+        int underscoreCount,
+        List<Node> rootChildren,
         NodeContext context = NodeContext.None)
     {
         var closeIndex = FindClosing(tokens, index, underscoreCount, TokenType.Underscore);
@@ -205,7 +211,7 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
             rootChildren.AddSymbol("_", underscoreCount);
             return 0;
         }
-        
+
         if (IsEscaped(tokens, closeIndex))
         {
             var nextIndex = closeIndex + 1;
@@ -239,8 +245,12 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
         return shift;
     }
 
-    private int HandleNonFormattingUnderscore(int closeIndex, int underscoreCount, int whitespaceBefore,
-        List<Node> rootChildren, NodeContext context = NodeContext.None)
+    private int HandleNonFormattingUnderscore(
+        int closeIndex,
+        int underscoreCount,
+        int whitespaceBefore,
+        List<Node> rootChildren,
+        NodeContext context = NodeContext.None)
     {
         var innerLength = closeIndex - index - whitespaceBefore;
         var tokensInsideUnderscores = tokens.GetRange(index, innerLength);
@@ -262,20 +272,30 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
     private int CreateFormattingNode(int underscoreCount, int closeIndex, List<Node> rootChildren)
     {
         var innerTokens = tokens.GetRange(index, closeIndex - index);
-        var nodeType = underscoreCount == 1 ? NodeType.Italic : NodeType.Bold;
+
+        var innerContext = underscoreCount == 1 ? NodeContext.Italic : NodeContext.None;
 
         var parsedInnerBlock = CreateParserFor(innerTokens)
-            .Parse(Node.GetNodeContext(nodeType))
+            .Parse(innerContext)
             .Children;
 
-        rootChildren.Add(new Node(nodeType, parsedInnerBlock));
+        Node formattingNode = underscoreCount switch
+        {
+            1 => new ItalicNode(parsedInnerBlock),
+            2 => new BoldNode(parsedInnerBlock),
+            _ => throw new InvalidOperationException("Unexpected underscore count for formatting node")
+        };
+
+        rootChildren.Add(formattingNode);
 
         var shift = closeIndex - index + underscoreCount;
         return shift;
     }
 
-    private bool ShouldHandleAsNonFormattingUnderscore(NodeContext context,
-        int closeIndex, int underscoreCount)
+    private bool ShouldHandleAsNonFormattingUnderscore(
+        NodeContext context,
+        int closeIndex,
+        int underscoreCount)
     {
         if (context == NodeContext.Italic
             || tokens.IsUnderscoreInDifferentWord(index - 1, closeIndex, underscoreCount)
@@ -283,7 +303,7 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
         {
             return true;
         }
-        
+
         for (var i = index; i < closeIndex; i++)
         {
             if (tokens[i].Type == TokenType.Underscore && !IsEscaped(tokens, i))
@@ -293,10 +313,9 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
                     .HaveNotPairedUnderscore();
             }
         }
-        
+
         return false;
     }
-
 
     #endregion
 
@@ -321,7 +340,7 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
     {
         var bracketsLength = tokens.GetTokensCountAfter(index, TokenType.LeftSquareBracket);
         var meaningTextCloseIndex = FindClosing(tokens, index, bracketsLength, TokenType.RightSquareBracket);
-        
+
         if (meaningTextCloseIndex == -1
             || IsEscaped(tokens, meaningTextCloseIndex)
             || !IsValidLinkSyntax(meaningTextCloseIndex))
@@ -346,8 +365,12 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
         return linkNode;
     }
 
-    private LinkNode BuildLinkNode(int meaningStart, int meaningEnd, int linkStart,
-        int linkEnd, NodeContext context)
+    private LinkNode BuildLinkNode(
+        int meaningStart,
+        int meaningEnd,
+        int linkStart,
+        int linkEnd,
+        NodeContext context)
     {
         var meaningTokens = tokens.GetRange(meaningStart, meaningEnd - meaningStart);
         var linkTokens = tokens.GetRange(linkStart, linkEnd - linkStart);
@@ -355,11 +378,12 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
         var meaningText = CreateParserFor(meaningTokens).Parse(context).Children;
         var linkText = CreateParserFor(linkTokens).Parse(context).Children;
 
-        return new LinkNode(LinkNodeType.LinkRoot,
-        [
-            new LinkNode(LinkNodeType.MeaningText, meaningText),
-            new LinkNode(LinkNodeType.LinkText, linkText)
-        ]);
+        return new LinkNode(
+            LinkNodeType.LinkRoot,
+            [
+                new LinkNode(LinkNodeType.MeaningText, meaningText),
+                new LinkNode(LinkNodeType.LinkText, linkText)
+            ]);
     }
 
     private bool IsValidLinkSyntax(int meaningTextCloseIndex)
@@ -375,7 +399,7 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
     #endregion
 
     #region Helpers
-    
+
     /// <summary>
     ///     Поиск закрывающего индекса закрывающего токена
     /// </summary>
@@ -385,9 +409,6 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
     /// <param name="tokenType">Тип токена, который ищется</param>
     /// <returns>
     ///     Индекс первого токена в закрывающей цепочке, либо -1, если закрывающая цепочка не найдена.
-    ///     Метод может выбросить исключение, если входные данные некорректны:
-    ///     - <see cref="ArgumentNullException"/>: если список токенов равен null.
-    ///     - <see cref="ArgumentOutOfRangeException"/>: если startIndex выходит за пределы допустимого диапазона.
     /// </returns>
     public static int FindClosing(List<MdToken> tokens, int startIndex, int patternLen, TokenType tokenType)
     {
@@ -405,7 +426,7 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
         {
             if (!RunMatches(tokens, j, patternLen, tokenType))
                 continue;
-            
+
             var prevIndex = j - 1;
             var prevSame = prevIndex >= 0
                            && tokens[prevIndex].Type == tokenType
@@ -474,7 +495,7 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
 
         return count;
     }
-    
+
     private static bool IsEscaped(List<MdToken> tokens, int position)
     {
         var backslashCount = 0;
@@ -506,7 +527,7 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
 
         return true;
     }
-    
+
     private void AddWhitespaceNodes(List<Node> rootChildren, int startIndex, int count)
     {
         var end = Math.Min(startIndex + count, tokens.Count);
@@ -516,7 +537,7 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
             var t = tokens[i];
 
             if (!IsWhitespaceToken(t.Type))
-                break; 
+                break;
 
             rootChildren.Add(new TextNode(t.Value));
         }

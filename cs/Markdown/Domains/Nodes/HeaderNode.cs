@@ -5,11 +5,10 @@ namespace Markdown.Domains.Nodes;
 public class HeaderNode : Node
 {
     public const int MaxHeaderLevel = 6;
-
     private int Level { get; }
 
     public HeaderNode(int level = 1, List<Node>? children = null)
-        : base(NodeType.Header, children)
+        : base(children)
     {
         if (level is < 1 or > MaxHeaderLevel)
             throw new ArgumentOutOfRangeException(
@@ -23,11 +22,7 @@ public class HeaderNode : Node
     public override void ConvertToHtml(StringBuilder sb)
     {
         sb.Append($"<h{Level}>");
-        foreach (var child in Children)
-        {
-            child.ConvertToHtml(sb);
-        }
-
+        RenderChildren(sb);
         sb.Append($"</h{Level}>");
     }
 }

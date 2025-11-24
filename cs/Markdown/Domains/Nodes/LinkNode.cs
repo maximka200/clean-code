@@ -2,17 +2,15 @@
 
 namespace Markdown.Domains.Nodes;
 
-public class LinkNode(LinkNodeType type, List<Node>? children = null) 
-    : Node(NodeType.Link, children)
+public class LinkNode(LinkNodeType type, List<Node>? children = null) : Node(children)
 {
     private LinkNodeType LinkNodeType { get; } = type;
-    
+
     public override void ConvertToHtml(StringBuilder sb)
     {
         if (LinkNodeType != LinkNodeType.LinkRoot || Children.Count < 2)
         {
-            foreach (var child in Children)
-                child.ConvertToHtml(sb);
+            RenderChildren(sb);
             return;
         }
 
@@ -26,19 +24,16 @@ public class LinkNode(LinkNodeType type, List<Node>? children = null)
 
         if (textNode == null || urlNode == null)
         {
-            foreach (var child in Children)
-                child.ConvertToHtml(sb);
+            RenderChildren(sb);
             return;
         }
-        
+
         var textBuilder = new StringBuilder();
-        foreach (var child in textNode.Children)
-            child.ConvertToHtml(textBuilder);
+        textNode.ConvertToHtml(textBuilder);
 
         var urlBuilder = new StringBuilder();
-        foreach (var child in urlNode.Children)
-            child.ConvertToHtml(urlBuilder);
-        
+        urlNode.ConvertToHtml(urlBuilder);
+
         sb.Append("<a href=\"");
         sb.Append(urlBuilder);
         sb.Append("\">");

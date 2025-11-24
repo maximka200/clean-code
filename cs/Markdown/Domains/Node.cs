@@ -1,70 +1,22 @@
 ﻿using System.Text;
-using ArgumentOutOfRangeException = System.ArgumentOutOfRangeException;
 
 namespace Markdown.Domains;
 
-public class Node(NodeType type, List<Node>? children = null) : IHtmlConverter
+public abstract class Node
 {
-    private NodeType Type { get; } = type;
-    public List<Node> Children { get; } = children ?? [];
+    public List<Node> Children { get; } = [];
 
-    public virtual void ConvertToHtml(StringBuilder sb)
+    protected Node(List<Node>? children = null)
     {
-        switch (Type)
-        {
-            case NodeType.Root:
-                RenderRoot(sb);
-                break;
-            case NodeType.Italic:
-                RenderItalic(sb);
-                break;
-            case NodeType.Bold:
-                RenderBold(sb);
-                break;
-            case NodeType.NewLine:
-                RenderNewLine(sb);
-                break;
-            case NodeType.Text:
-            case NodeType.Header:
-            case NodeType.Link:
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
+        if (children != null)
+            Children.AddRange(children);
     }
 
-    internal static NodeContext GetNodeContext(NodeType nodeType)
-    {
-        return nodeType switch
-        {
-            NodeType.Italic => NodeContext.Italic,
-            _ => NodeContext.None
-        };
-    }
+    public abstract void ConvertToHtml(StringBuilder sb);
 
-    private void RenderRoot(StringBuilder sb)
+    protected void RenderChildren(StringBuilder sb)
     {
         foreach (var child in Children)
             child.ConvertToHtml(sb);
-    }
-
-    private void RenderItalic(StringBuilder sb)
-    {
-        sb.Append("<em>");
-        foreach (var child in Children)
-            child.ConvertToHtml(sb);
-        sb.Append("</em>");
-    }
-
-    private void RenderBold(StringBuilder sb)
-    {
-        sb.Append("<strong>");
-        foreach (var child in Children)
-            child.ConvertToHtml(sb);
-        sb.Append("</strong>");
-    }
-
-    private static void RenderNewLine(StringBuilder sb)
-    {
-        sb.Append("<br/>");
     }
 }

@@ -27,6 +27,7 @@ public class MarkdownPerformanceTests
             var markdown = GenerateRandomMarkdown(length);
             sw.Start();
             Render(markdown);
+            GC.Collect();
             sw.Stop();
             timeSpans.Add(sw.Elapsed);
             sw.Reset();

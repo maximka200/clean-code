@@ -58,7 +58,7 @@ public static class ListMdTokenExtension
 
         return hasNumber && prevIsWord;
     }
-    
+
 
     public static void AddSymbol(this List<Node> root, string symbol, int count)
     {

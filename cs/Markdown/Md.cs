@@ -1,5 +1,4 @@
-﻿using Markdown.Generator;
-using Markdown.Lexer;
+﻿using Markdown.Lexer;
 using Markdown.Parser;
 
 namespace Markdown;
@@ -10,8 +9,8 @@ public static class Md
     {
         var tokens = MdLexer.Tokenize(text);
         var parser = new TokenParser(tokens);
-        var parseTree = parser.Parse();
-        var html = HtmlGenerator.Generate(parseTree);
+        var rootNode = parser.Parse();
+        var html = rootNode.ToHtml();
 
         return html;
     }

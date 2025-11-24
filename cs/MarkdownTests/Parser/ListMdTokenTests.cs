@@ -2,6 +2,7 @@
 using Markdown.Domains;
 using Markdown.Parser;
 
+namespace MarkdownTest.Parser;
 
 [TestFixture]
 public class ListMdTokenTests

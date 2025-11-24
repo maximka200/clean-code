@@ -19,7 +19,7 @@ public class TokenParserTests
                 new(TokenType.Space, " "),
                 new(TokenType.Word, "Test")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new HeaderNode(1, new List<Node>
                 {
@@ -36,7 +36,7 @@ public class TokenParserTests
                 new(TokenType.Space, " "),
                 new(TokenType.Word, "Test")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new HeaderNode(2, new List<Node>
                 {
@@ -57,7 +57,7 @@ public class TokenParserTests
                 new(TokenType.Space, " "),
                 new(TokenType.Word, "Test")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new HeaderNode(6, new List<Node>
                 {
@@ -73,9 +73,9 @@ public class TokenParserTests
                 new(TokenType.Word, "Test"),
                 new(TokenType.Underscore, "_")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
-                new(NodeType.Italic, new List<Node>
+                new ItalicNode(new List<Node>
                 {
                     new TextNode("Test")
                 })
@@ -91,9 +91,9 @@ public class TokenParserTests
                 new(TokenType.Underscore, "_"),
                 new(TokenType.Underscore, "_")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
-                new(NodeType.Bold, new List<Node>
+                new BoldNode(new List<Node>
                 {
                     new TextNode("text")
                 })
@@ -107,14 +107,14 @@ public class TokenParserTests
                 new(TokenType.Word, "Test"),
                 new(TokenType.Underscore, "_")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
-                new(NodeType.Italic, new List<Node>
+                new ItalicNode(new List<Node>
                 {
                     new TextNode("Test")
                 })
             })
-        ).SetName("ItalicUnderscoreNode");
+        ).SetName("ItalicUnderscoreNode_Duplicate");
 
         yield return new TestCaseData(
             new List<MdToken>
@@ -125,14 +125,14 @@ public class TokenParserTests
                 new(TokenType.Underscore, "_"),
                 new(TokenType.Underscore, "_")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
-                new(NodeType.Bold, new List<Node>
+                new BoldNode(new List<Node>
                 {
                     new TextNode("123")
                 })
             })
-        ).SetName("BoldUnderscoreNode");
+        ).SetName("BoldUnderscoreNode_Number");
 
         yield return new TestCaseData(
             new List<MdToken>
@@ -159,26 +159,26 @@ public class TokenParserTests
                 new(TokenType.Word, "word"),
                 new(TokenType.Underscore, "_")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
-                new(NodeType.Italic, new List<Node>
+                new ItalicNode(new List<Node>
                 {
                     new TextNode("Test")
                 }),
-                new(NodeType.NewLine),
+                new NewLineNode(),
                 new HeaderNode(2, new List<Node>
                 {
                     new TextNode("Header"),
                     new TextNode(" "),
                     new TextNode("##"),
                 }),
-                new(NodeType.NewLine),
-                new(NodeType.Bold, new List<Node>
+                new NewLineNode(),
+                new BoldNode(new List<Node>
                 {
                     new TextNode("word")
                 }),
                 new TextNode(" "),
-                new(NodeType.Italic, new List<Node>
+                new ItalicNode(new List<Node>
                 {
                     new TextNode("word")
                 })
@@ -195,7 +195,7 @@ public class TokenParserTests
                 new(TokenType.Word, "example.com"),
                 new(TokenType.RightParenthesis, ")")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new LinkNode(LinkNodeType.LinkRoot,
                     new List<Node>
@@ -216,7 +216,7 @@ public class TokenParserTests
                 )
             })
         ).SetName("WithLink");
-        
+
         yield return new TestCaseData(
             new List<MdToken>
             {
@@ -231,7 +231,7 @@ public class TokenParserTests
                 new(TokenType.Underscore, "_"),
                 new(TokenType.RightParenthesis, ")")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new LinkNode(LinkNodeType.LinkRoot,
                     new List<Node>
@@ -239,53 +239,7 @@ public class TokenParserTests
                         new LinkNode(LinkNodeType.MeaningText,
                             new List<Node>
                             {
-                                new(NodeType.Italic, new List<Node>
-                                    {
-                                        new TextNode("text")
-                                    })
-                            }
-                        ),
-                        new LinkNode(LinkNodeType.LinkText,
-                            new List<Node>
-                            {
-                                new(NodeType.Italic, new List<Node>
-                                {
-                                    new TextNode("example.com")
-                                })
-                            }
-                        )
-                    }
-                )
-            })
-        ).SetName("WithLinkItalicText");
-        
-        yield return new TestCaseData(
-            new List<MdToken>
-            {
-                new(TokenType.LeftSquareBracket, "["),
-                new(TokenType.Underscore, "_"),
-                new(TokenType.Underscore, "_"),
-                new(TokenType.Word, "text"),
-                new(TokenType.Underscore, "_"),
-                new(TokenType.Underscore, "_"),
-                new(TokenType.RightSquareBracket, "]"),
-                new(TokenType.LeftParenthesis, "("),
-                new(TokenType.Underscore, "_"),
-                new(TokenType.Underscore, "_"),
-                new(TokenType.Word, "example.com"),
-                new(TokenType.Underscore, "_"),
-                new(TokenType.Underscore, "_"),
-                new(TokenType.RightParenthesis, ")")
-            },
-            new Node(NodeType.Root, new List<Node>
-            {
-                new LinkNode(LinkNodeType.LinkRoot,
-                    new List<Node>
-                    {
-                        new LinkNode(LinkNodeType.MeaningText,
-                            new List<Node>
-                            {
-                                new(NodeType.Bold, new List<Node>
+                                new ItalicNode(new List<Node>
                                 {
                                     new TextNode("text")
                                 })
@@ -294,7 +248,7 @@ public class TokenParserTests
                         new LinkNode(LinkNodeType.LinkText,
                             new List<Node>
                             {
-                                new(NodeType.Bold, new List<Node>
+                                new ItalicNode(new List<Node>
                                 {
                                     new TextNode("example.com")
                                 })
@@ -309,12 +263,58 @@ public class TokenParserTests
             new List<MdToken>
             {
                 new(TokenType.LeftSquareBracket, "["),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Word, "text"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.RightSquareBracket, "]"),
+                new(TokenType.LeftParenthesis, "("),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Word, "example.com"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.Underscore, "_"),
+                new(TokenType.RightParenthesis, ")")
+            },
+            new RootNode(new List<Node>
+            {
+                new LinkNode(LinkNodeType.LinkRoot,
+                    new List<Node>
+                    {
+                        new LinkNode(LinkNodeType.MeaningText,
+                            new List<Node>
+                            {
+                                new BoldNode(new List<Node>
+                                {
+                                    new TextNode("text")
+                                })
+                            }
+                        ),
+                        new LinkNode(LinkNodeType.LinkText,
+                            new List<Node>
+                            {
+                                new BoldNode(new List<Node>
+                                {
+                                    new TextNode("example.com")
+                                })
+                            }
+                        )
+                    }
+                )
+            })
+        ).SetName("WithLinkBoldText");
+
+        yield return new TestCaseData(
+            new List<MdToken>
+            {
+                new(TokenType.LeftSquareBracket, "["),
                 new(TokenType.Word, "text"),
                 new(TokenType.LeftParenthesis, "("),
                 new(TokenType.Word, "example.com"),
                 new(TokenType.RightParenthesis, ")")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new TextNode("["),
                 new TextNode("text"),
@@ -333,7 +333,7 @@ public class TokenParserTests
                 new(TokenType.Word, "example.com"),
                 new(TokenType.RightParenthesis, ")")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new TextNode("["),
                 new TextNode("text"),
@@ -344,7 +344,38 @@ public class TokenParserTests
         ).SetName("WithLinkUnclosedParenthesisBracket");
     }
 
-    private static IEnumerable<TestCaseData> TokenParserCases_Extreme()
+
+        [Test]
+        [TestCaseSource(nameof(TokenParserCases_Default))]
+        [TestCaseSource(nameof(TokenParserCases_Extreme))]
+        public void Parse_ShouldParse_Correctly(List<MdToken> tokens, Node expectedNode)
+        {
+            var parser = new Markdown.Parser.TokenParser(tokens);
+
+            var result = parser.Parse();
+
+            result.Should().BeEquivalentTo(expectedNode);
+        }
+        
+        [Test]
+        public void FindClosing_SquareBrackets_ShouldReturnCorrectIndex()
+        {
+            var tokens = new List<MdToken>
+            {
+                new(TokenType.LeftSquareBracket, "["),
+                new(TokenType.Word, "example"),
+                new(TokenType.Number, "123"),
+                new(TokenType.RightSquareBracket, "]"),
+                new(TokenType.Word, "example")
+            };
+            const int expectedCloseIndex = 3;
+
+            var closeIndex =  TokenParser.FindClosing(tokens, 1, 1, TokenType.RightSquareBracket);
+
+            closeIndex.Should().Be(expectedCloseIndex);
+        }
+        
+        private static IEnumerable<TestCaseData> TokenParserCases_Extreme()
     {
         yield return new TestCaseData(
             new List<MdToken>
@@ -352,7 +383,7 @@ public class TokenParserTests
                 new(TokenType.Underscore, "_"),
                 new(TokenType.Word, "UnclosedItalic")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new TextNode("_"),
                 new TextNode("UnclosedItalic")
@@ -365,7 +396,7 @@ public class TokenParserTests
                 new(TokenType.Underscore, "__"),
                 new(TokenType.Word, "UnclosedBold")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new TextNode("__"),
                 new TextNode("UnclosedBold")
@@ -382,7 +413,7 @@ public class TokenParserTests
                 new(TokenType.Slash, "\\"),
                 new(TokenType.Underscore, "_")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new TextNode("\\_"),
                 new TextNode("SlashUnderscore"),
@@ -398,7 +429,7 @@ public class TokenParserTests
                 new(TokenType.Space, " "),
                 new(TokenType.Underscore, "HEADER")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new TextNode("\\# "),
                 new TextNode(" "),
@@ -415,7 +446,7 @@ public class TokenParserTests
                 new(TokenType.Underscore, "_"),
                 new(TokenType.Underscore, "_")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new TextNode("_"),
                 new TextNode("_"),
@@ -433,7 +464,7 @@ public class TokenParserTests
                 new(TokenType.Word, "Непарные"),
                 new(TokenType.Underscore, "_")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new TextNode("_"),
                 new TextNode("_"),
@@ -456,18 +487,19 @@ public class TokenParserTests
                 new(TokenType.Underscore, "_"),
                 new(TokenType.Underscore, "_")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
-                new(NodeType.Bold, new List<Node>
+                new BoldNode(new List<Node>
                 {
                     new TextNode("test"),
-                    new(NodeType.Italic, new List<Node>
+                    new ItalicNode(new List<Node>
                     {
                         new TextNode("test")
                     }),
                     new TextNode("test")
                 })
-            })).SetName("WithinDoubleSelectionSingle");
+            })
+        ).SetName("WithinDoubleSelectionSingle");
 
         // Но не наоборот — внутри _одинарного __двойное__ не_ работает.
         yield return new TestCaseData(
@@ -483,9 +515,9 @@ public class TokenParserTests
                 new(TokenType.Word, "test"),
                 new(TokenType.Underscore, "_")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
-                new(NodeType.Italic, new List<Node>
+                new ItalicNode(new List<Node>
                 {
                     new TextNode("test"),
                     new TextNode("_"),
@@ -495,7 +527,8 @@ public class TokenParserTests
                     new TextNode("_"),
                     new TextNode("test")
                 })
-            })).SetName("WithinSingleSelectionDouble");
+            })
+        ).SetName("WithinSingleSelectionDouble");
 
         // Подчерки внутри текста с цифрами_12_3 не считаются выделением и должны оставаться символами подчерка
         yield return new TestCaseData(
@@ -507,7 +540,7 @@ public class TokenParserTests
                 new(TokenType.Underscore, "_"),
                 new(TokenType.Number, "3")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new TextNode("цифрами"),
                 new TextNode("_"),
@@ -526,13 +559,12 @@ public class TokenParserTests
                 new(TokenType.Underscore, "_"),
                 new(TokenType.Word, "але")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
-                new(NodeType.Italic, new List<Node>
-                    {
-                        new TextNode("нач")
-                    }
-                ),
+                new ItalicNode(new List<Node>
+                {
+                    new TextNode("нач")
+                }),
                 new TextNode("але")
             })
         ).SetName("UnderscoreInWord_Start");
@@ -546,14 +578,13 @@ public class TokenParserTests
                 new(TokenType.Underscore, "_"),
                 new(TokenType.Word, "не")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new TextNode("сер"),
-                new(NodeType.Italic, new List<Node>
-                    {
-                        new TextNode("eди")
-                    }
-                ),
+                new ItalicNode(new List<Node>
+                {
+                    new TextNode("eди")
+                }),
                 new TextNode("не")
             })
         ).SetName("UnderscoreInWord_Middle");
@@ -566,14 +597,13 @@ public class TokenParserTests
                 new(TokenType.Word, "це"),
                 new(TokenType.Underscore, "_")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new TextNode("кон"),
-                new(NodeType.Italic, new List<Node>
-                    {
-                        new TextNode("це")
-                    }
-                )
+                new ItalicNode(new List<Node>
+                {
+                    new TextNode("це")
+                })
             })
         ).SetName("UnderscoreInWord_Finish");
 
@@ -589,7 +619,7 @@ public class TokenParserTests
                 new(TokenType.Underscore, "_"),
                 new(TokenType.Word, "вах")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new TextNode("ра"),
                 new TextNode("_"),
@@ -610,7 +640,7 @@ public class TokenParserTests
                 new(TokenType.Word, "подчерки"),
                 new(TokenType.Underscore, "_")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new TextNode("_"),
                 new TextNode(" "),
@@ -627,7 +657,7 @@ public class TokenParserTests
                 new(TokenType.Space, " "),
                 new(TokenType.Underscore, "_")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new TextNode("_"),
                 new TextNode("подчерки"),
@@ -654,7 +684,7 @@ public class TokenParserTests
                 new(TokenType.Word, "одинарных"),
                 new(TokenType.Underscore, "_")
             },
-            new Node(NodeType.Root, new List<Node>
+            new RootNode(new List<Node>
             {
                 new TextNode("_"),
                 new TextNode("_"),
@@ -672,37 +702,7 @@ public class TokenParserTests
             })
         ).SetName("UnionDoubleAndOneUnderscore");
     }
-
-    [Test]
-    [TestCaseSource(nameof(TokenParserCases_Default))]
-    [TestCaseSource(nameof(TokenParserCases_Extreme))]
-    public void Parse_ShouldParse_Correctly(List<MdToken> tokens, Node expectedNode)
-    {
-        var parser = new Markdown.Parser.TokenParser(tokens);
-
-        var result = parser.Parse();
-
-        result.Should().BeEquivalentTo(expectedNode);
-    }
-    
-    [Test]
-    public void FindClosing_SquareBrackets_ShouldReturnCorrectIndex()
-    {
-        var tokens = new List<MdToken>
-        {
-            new(TokenType.LeftSquareBracket, "["),
-            new(TokenType.Word, "example"),
-            new(TokenType.Number, "123"),
-            new(TokenType.RightSquareBracket, "]"),
-            new(TokenType.Word, "example")
-        };
-        const int expectedCloseIndex = 3;
-
-        var closeIndex =  TokenParser.FindClosing(tokens, 1, 1, TokenType.RightSquareBracket);
-
-        closeIndex.Should().Be(expectedCloseIndex);
-    }
-
+        
     [Test]
     public void FindClosing_ParenthesisBrackets_ShouldReturnCorrectIndex()
     {

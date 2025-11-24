@@ -55,6 +55,7 @@ public class MarkdownFuncTests
     [TestCase(@"_underscore\ _", @"_underscore\ _")]
     [TestCase(@"\ \", @"\ \")]
     [TestCase("_\t_", "_\t_")]
+    [TestCase("\\:", "\\:")]
     public void Should_ConvertMarkdownWithShieldingToHtml_Correctly(string markdown, string expectedHtml)
     {
         var html = Render(markdown);

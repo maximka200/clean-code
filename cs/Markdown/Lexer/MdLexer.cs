@@ -27,7 +27,7 @@ namespace Markdown.Lexer;
 ///     </list>
 /// </remarks>
 public static class MdLexer
-{ 
+{
     private static readonly Dictionary<char, TokenType> TokenMap = new()
     {
         { '#', TokenType.Grid },
@@ -44,7 +44,7 @@ public static class MdLexer
         { '(', TokenType.LeftParenthesis },
         { ')', TokenType.RightParenthesis }
     };
-    
+
     public static List<MdToken> Tokenize(string text)
     {
         var tokens = new List<MdToken>();
@@ -71,7 +71,7 @@ public static class MdLexer
 
         return tokens;
     }
-    
+
     public static TokenType GetTokenType(char text)
     {
         if (TokenMap.TryGetValue(text, out var tokenType))
@@ -95,6 +95,7 @@ public static class MdLexer
 
         return (value.ToString(), i - 1);
     }
+
     private static bool IsPieceOfWord(this char ch)
     {
         return char.IsLetter(ch) || !TokenMap.ContainsKey(ch);
