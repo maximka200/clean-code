@@ -323,11 +323,9 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
 
     private void HandleLeftSquareBracket(List<Node> rootChildren, NodeContext context)
     {
-        var linkNode = TryParseLink(context);
-
-        if (linkNode is not null)
+        if (TryParseLink(context, out var linkNode))
         {
-            rootChildren.Add(linkNode);
+            rootChildren.Add(linkNode ?? throw new InvalidOperationException());
         }
         else
         {
@@ -336,23 +334,25 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
         }
     }
 
-    private LinkNode? TryParseLink(NodeContext context)
+    private bool TryParseLink(NodeContext context, out LinkNode? node)
     {
+        node = null;
+
         var bracketsLength = tokens.GetTokensCountAfter(index, TokenType.LeftSquareBracket);
         var meaningTextCloseIndex = FindClosing(tokens, index, bracketsLength, TokenType.RightSquareBracket);
 
         if (meaningTextCloseIndex == -1
             || IsEscaped(tokens, meaningTextCloseIndex)
             || !IsValidLinkSyntax(meaningTextCloseIndex))
-            return null;
+            return false;
 
         var linkTextCloseIndex =
             FindClosing(tokens, meaningTextCloseIndex + 2, 1, TokenType.RightParenthesis);
 
         if (linkTextCloseIndex == -1 || IsEscaped(tokens, linkTextCloseIndex))
-            return null;
+            return false;
 
-        var linkNode = BuildLinkNode(
+        node = BuildLinkNode(
             meaningStart: index + 1,
             meaningEnd: meaningTextCloseIndex,
             linkStart: meaningTextCloseIndex + 2,
@@ -362,7 +362,7 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
 
         MoveIndex(linkTextCloseIndex + 1 - index);
 
-        return linkNode;
+        return true;
     }
 
     private LinkNode BuildLinkNode(
