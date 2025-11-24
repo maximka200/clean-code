@@ -365,12 +365,8 @@ public class TokenParser(List<MdToken> tokens, int index = 0)
         return true;
     }
 
-    private LinkNode BuildLinkNode(
-        int meaningStart,
-        int meaningEnd,
-        int linkStart,
-        int linkEnd,
-        NodeContext context)
+    private LinkNode BuildLinkNode(int meaningStart, int meaningEnd,
+        int linkStart, int linkEnd, NodeContext context)
     {
         var meaningTokens = tokens.GetRange(meaningStart, meaningEnd - meaningStart);
         var linkTokens = tokens.GetRange(linkStart, linkEnd - linkStart);

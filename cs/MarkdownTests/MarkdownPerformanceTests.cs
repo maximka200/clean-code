@@ -13,7 +13,7 @@ public class MarkdownPerformanceTests
 
     [Test]
     [Explicit]
-    [Repeat(10)]
+    [Repeat(100)]
     public void Markdown_Render_ShouldWorkFastThanNLogN()
     {
         const int scale = 10;
@@ -36,7 +36,7 @@ public class MarkdownPerformanceTests
         var timeRatios = Enumerable.Range(0, timeSpans.Count - 2)
             .Select(i => (double)timeSpans[i + 1].Ticks / timeSpans[i].Ticks);
 
-        const int maxAllowedRatio = scale * scale;
+        var maxAllowedRatio = scale * Math.Log(scale);
         
         timeRatios.Should()
             .OnlyContain(timeRatio => timeRatio < maxAllowedRatio);
